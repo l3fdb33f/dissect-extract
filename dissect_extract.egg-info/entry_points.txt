@@ -1,0 +1,2 @@
+[console_scripts]
+dissect-timeline = dissect_extract.cli:main

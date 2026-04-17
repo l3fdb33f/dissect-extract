@@ -1,0 +1,7 @@
+dissect.target>=3.20
+
+[:python_version < "3.11"]
+tomli>=2.0.1
+
+[dev]
+ruff>=0.6

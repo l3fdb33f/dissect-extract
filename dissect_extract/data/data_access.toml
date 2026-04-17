@@ -1,0 +1,82 @@
+# Evidence of files and locations users touched or opened.
+
+[windows.functions.shellbags]
+description = "Shellbag (folder access) entry: {path}"
+timestamp_field = "ts_mtime"
+
+[windows.functions."mru.recentdocs"]
+description = "RecentDocs MRU: {value} (key {key})"
+timestamp_field = "regf_mtime"
+
+[windows.functions.recentfilecache]
+description = "RecentFileCache entry (data access): {path}"
+
+[windows.functions.recyclebin]
+description = "Recycle Bin item (deleted file reference): {deleted_path} (record {path})"
+timestamp_field = "ts"
+
+[windows.functions."sru.application_timeline"]
+description = "SRUM application timeline (program/resource use): {app} — user {user}"
+timestamp_field = "ts"
+
+[[windows.walkfs]]
+walkfs_path = "C:/Users"
+path_substring = "/Recent/"
+path_glob = "**/*"
+description = "User Recent folder artifact: {path}"
+timestamp_field = "mtime"
+
+[[windows.walkfs]]
+walkfs_path = "C:/Windows/System32/winevt/Logs"
+path_glob = "*.evtx"
+description = "Windows Event Log file (data access / auditing): {path}"
+timestamp_field = "mtime"
+
+[linux.functions.recently_used]
+description = "Recently used file (GTK/XDG): {href} ({source})"
+timestamp_field = "ts"
+
+[linux.functions.commandhistory]
+description = "Shell history (commands accessing files): {command}"
+timestamp_field = "ts"
+
+[[linux.walkfs]]
+walkfs_path = "/var/log"
+path_glob = "auth.log*"
+description = "Auth log (access): {path}"
+timestamp_field = "mtime"
+
+[[linux.walkfs]]
+walkfs_path = "/var/log"
+path_glob = "secure*"
+description = "Secure log (access): {path}"
+timestamp_field = "mtime"
+
+[macos.functions.recently_used]
+description = "Recently used entry: {href} ({source})"
+timestamp_field = "ts"
+
+[macos.functions.commandhistory]
+description = "Shell history: {command}"
+timestamp_field = "ts"
+
+[[macos.walkfs]]
+walkfs_path = "/Users"
+path_substring = "/Recent/"
+path_glob = "**/*"
+description = "macOS Recent Items path: {path}"
+timestamp_field = "mtime"
+
+[unix.functions.commandhistory]
+description = "Shell history: {command}"
+timestamp_field = "ts"
+
+[[unix.walkfs]]
+walkfs_path = "/var/log"
+path_glob = "auth.log*"
+description = "Auth log: {path}"
+timestamp_field = "mtime"
+
+[bsd.functions.commandhistory]
+description = "Shell history: {command}"
+timestamp_field = "ts"

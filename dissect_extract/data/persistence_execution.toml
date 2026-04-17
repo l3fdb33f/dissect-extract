@@ -1,0 +1,246 @@
+# Persistence & execution: plugin functions and walkfs roots per OS.
+# Placeholders use record fields from each dissect plugin (see dissect docs / target-query --list).
+
+[[scenario]]
+os = "windows"
+function = "runkeys"
+field_contains = { command = "powershell" }
+description = "Run key invokes PowerShell (persistence / execution): {command} (value {name}, key {key})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "linux"
+function = "services"
+field_contains = { name = ".timer" }
+description = "systemd timer unit (scheduled execution / persistence): {name} ({source})"
+timestamp_field = "ts"
+
+[windows.functions.runkeys]
+description = "Windows Run / RunOnce registry persistence: {command} (value {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions.services]
+description = "Windows service configuration (persistence): {name} — {displayname} (image {imagepath})"
+timestamp_field = "ts"
+
+[windows.functions.tasks]
+description = "Scheduled Task (execution / persistence): {task_name} — {action} ({task_path})"
+timestamp_field = "date"
+
+[windows.functions.userassist]
+description = "UserAssist execution evidence: {value} (subkey {subkey})"
+timestamp_field = "ts"
+
+[windows.functions.appinit]
+description = "AppInit_DLLs DLL load persistence: {path}"
+timestamp_field = "ts"
+
+[windows.functions.bootshell]
+description = "Winlogon Shell / alternate shell persistence: {path}"
+timestamp_field = "ts"
+
+[windows.functions.alternateshell]
+description = "AlternateShell (Terminal Services) persistence: {path}"
+timestamp_field = "ts"
+
+[windows.functions.winlogon]
+description = "Winlogon notification package / logon persistence: {value} (key {key})"
+timestamp_field = "ts"
+
+[windows.functions.startupinfo]
+description = "Startup program metadata (Run key related): {name}"
+timestamp_field = "ts"
+
+[windows.functions.shimcache]
+description = "ShimCache (Amcache) program execution cache: {path}"
+timestamp_field = "ts"
+
+[windows.functions.amcache]
+description = "Amcache program execution artifact: {path}"
+timestamp_field = "ts"
+
+[windows.functions.muicache]
+description = "MUICache execution / GUI program evidence: {name}"
+timestamp_field = "ts"
+
+[windows.functions.prefetch]
+description = "Prefetch execution evidence: {path} (executable {executable})"
+timestamp_field = "ts"
+
+[windows.functions.powershell_history]
+description = "PowerShell command history (execution): {command}"
+timestamp_field = "mtime"
+
+[windows.functions.usnjrnl]
+description = "NTFS USN Journal change record (often execution / file ops): {path} — reason {reason}"
+timestamp_field = "ts"
+
+[[windows.walkfs]]
+walkfs_path = "C:/Windows/System32/Tasks"
+path_glob = "**/*"
+description = "Scheduled Tasks on-disk artifact: {path}"
+timestamp_field = "mtime"
+
+[[windows.walkfs]]
+walkfs_path = "C:/ProgramData/Microsoft/Windows/Start Menu/Programs/Startup"
+path_glob = "**/*"
+description = "All Users Startup folder entry (persistence): {path}"
+timestamp_field = "mtime"
+
+[[windows.walkfs]]
+walkfs_path = "C:/Windows/Prefetch"
+path_glob = "*.pf"
+description = "Prefetch file (program execution artifact): {path}"
+timestamp_field = "mtime"
+
+[linux.functions.cronjobs]
+description = "Cron job entry (persistence / scheduled execution): {command} (source {source})"
+timestamp_field = "ts"
+
+[linux.functions.services]
+description = "Service / systemd unit / init script (persistence): {name} ({type}) — {source}"
+timestamp_field = "ts"
+
+[linux.functions.bashhistory]
+description = "Bash history command (execution): {command}"
+timestamp_field = "ts"
+
+[linux.functions.commandhistory]
+description = "Unix shell command history (execution): {command}"
+timestamp_field = "ts"
+
+[linux.functions."openssh.authorized_keys"]
+description = "authorized_keys entry (access / trust / persistence context): {comment} ({key_type}) — {path}"
+timestamp_field = "ts"
+
+[[linux.walkfs]]
+walkfs_path = "/etc/cron.d"
+path_glob = "**/*"
+description = "cron.d drop-in file (scheduled execution): {path}"
+timestamp_field = "mtime"
+
+[[linux.walkfs]]
+walkfs_path = "/etc/cron.daily"
+path_glob = "**/*"
+description = "cron.daily script (scheduled execution): {path}"
+timestamp_field = "mtime"
+
+[[linux.walkfs]]
+walkfs_path = "/etc/systemd/system"
+path_glob = "**/*"
+description = "systemd unit file (persistence): {path}"
+timestamp_field = "mtime"
+
+[[linux.walkfs]]
+walkfs_path = "/lib/systemd/system"
+path_glob = "**/*"
+description = "systemd vendor unit file (persistence): {path}"
+timestamp_field = "mtime"
+
+[[linux.walkfs]]
+walkfs_path = "/etc/init.d"
+path_glob = "**/*"
+description = "init.d script (persistence): {path}"
+timestamp_field = "mtime"
+
+[[linux.walkfs]]
+walkfs_path = "/etc/rc.local"
+description = "rc.local (boot persistence): {path}"
+timestamp_field = "mtime"
+
+[[linux.walkfs]]
+walkfs_path = "/home"
+path_substring = "/.ssh/"
+path_glob = "**/*"
+description = "User SSH configuration file (access / trust): {path}"
+timestamp_field = "mtime"
+
+[[linux.walkfs]]
+walkfs_path = "/root"
+path_substring = ".ssh"
+path_glob = "**/*"
+description = "Root SSH configuration file: {path}"
+timestamp_field = "mtime"
+
+[[linux.walkfs]]
+walkfs_path = "/etc/profile.d"
+path_glob = "**/*"
+description = "profile.d script (login execution): {path}"
+timestamp_field = "mtime"
+
+[macos.functions.commandhistory]
+description = "Shell command history (execution): {command}"
+timestamp_field = "ts"
+
+[macos.functions.bashhistory]
+description = "Bash history (execution): {command}"
+timestamp_field = "ts"
+
+[macos.functions."openssh.authorized_keys"]
+description = "authorized_keys entry: {comment} ({key_type}) — {path}"
+timestamp_field = "ts"
+
+[[macos.walkfs]]
+walkfs_path = "/Library/LaunchAgents"
+path_glob = "**/*.plist"
+description = "Launch Agent plist (user persistence): {path}"
+timestamp_field = "mtime"
+
+[[macos.walkfs]]
+walkfs_path = "/Library/LaunchDaemons"
+path_glob = "**/*.plist"
+description = "Launch Daemon plist (system persistence): {path}"
+timestamp_field = "mtime"
+
+[[macos.walkfs]]
+walkfs_path = "/Library/StartupItems"
+path_glob = "**/*"
+description = "Legacy StartupItems entry: {path}"
+timestamp_field = "mtime"
+
+[[macos.walkfs]]
+walkfs_path = "/Users"
+path_substring = "/Library/LaunchAgents/"
+path_glob = "**/*.plist"
+description = "User LaunchAgents plist: {path}"
+timestamp_field = "mtime"
+
+[unix.functions.commandhistory]
+description = "Shell command history (execution): {command}"
+timestamp_field = "ts"
+
+[unix.functions.bashhistory]
+description = "Bash history (execution): {command}"
+timestamp_field = "ts"
+
+[unix.functions.cronjobs]
+description = "Cron entry (scheduled execution): {command} (source {source})"
+timestamp_field = "ts"
+
+[unix.functions."openssh.authorized_keys"]
+description = "authorized_keys entry: {comment} ({key_type}) — {path}"
+timestamp_field = "ts"
+
+[[unix.walkfs]]
+walkfs_path = "/etc/periodic"
+path_glob = "**/*"
+description = "BSD periodic script (scheduled execution): {path}"
+timestamp_field = "mtime"
+
+[[unix.walkfs]]
+walkfs_path = "/usr/local/etc/rc.d"
+path_glob = "**/*"
+description = "rc.d script (persistence): {path}"
+timestamp_field = "mtime"
+
+[bsd.functions.commandhistory]
+description = "Shell command history (execution): {command}"
+timestamp_field = "ts"
+
+[bsd.functions.cronjobs]
+description = "Cron entry: {command} (source {source})"
+timestamp_field = "ts"
+
+[bsd.functions."openssh.authorized_keys"]
+description = "authorized_keys entry: {comment} ({key_type}) — {path}"
+timestamp_field = "ts"

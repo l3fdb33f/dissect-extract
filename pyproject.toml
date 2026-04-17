@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dissect-extract"
+version = "0.1.0"
+description = "Timeline extraction and labeling using dissect.target (Python API)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "dissect.target>=3.20",
+    "tomli>=2.0.1; python_version < '3.11'",
+]
+
+[project.scripts]
+dissect-timeline = "dissect_extract.cli:main"
+
+[project.optional-dependencies]
+dev = ["ruff>=0.6"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["dissect_extract*"]
+
+[tool.setuptools.package-data]
+dissect_extract = ["data/*.toml"]

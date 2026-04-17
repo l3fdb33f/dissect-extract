@@ -1,0 +1,83 @@
+# Remote access, remote desktop, and trust artifacts.
+
+[[scenario]]
+os = "windows"
+function = "remoteaccess"
+field_contains = { message = "RDP" }
+description = "Remote access log mentions RDP: {message} ({source})"
+timestamp_field = "ts"
+
+[windows.functions.remoteaccess]
+description = "Remote access tool log (TeamViewer, AnyDesk, etc.): {message} ({source})"
+timestamp_field = "ts"
+
+[windows.functions."rdpcache.paths"]
+description = "RDP client bitmap cache file (lateral movement artifact): {path}"
+timestamp_field = "mtime"
+
+[windows.functions."mru.mstsc"]
+description = "MSTSC MRU — recent RDP target: {value} (key {key})"
+timestamp_field = "regf_mtime"
+
+[windows.functions."openssh.authorized_keys"]
+description = "authorized_keys on Windows host: {comment} — {path}"
+timestamp_field = "ts"
+
+[[windows.walkfs]]
+walkfs_path = "C:/Windows/System32/config/systemprofile/.ssh"
+path_glob = "**/*"
+description = "SYSTEM profile .ssh entry: {path}"
+timestamp_field = "mtime"
+
+[linux.functions."openssh.authorized_keys"]
+description = "SSH authorized_keys: {comment} — {path}"
+timestamp_field = "ts"
+
+[linux.functions."openssh.known_hosts"]
+description = "SSH known_hosts host entry: {host} — {path}"
+timestamp_field = "mtime_ts"
+
+[linux.functions.remoteaccess]
+description = "Remote access log: {message} ({source})"
+timestamp_field = "ts"
+
+[[linux.walkfs]]
+walkfs_path = "/etc/ssh"
+path_glob = "**/*"
+description = "sshd configuration tree: {path}"
+timestamp_field = "mtime"
+
+[[linux.walkfs]]
+walkfs_path = "/home"
+path_substring = "/.ssh/"
+path_glob = "**/*"
+description = "User .ssh path: {path}"
+timestamp_field = "mtime"
+
+[macos.functions."openssh.authorized_keys"]
+description = "SSH authorized_keys: {comment} — {path}"
+timestamp_field = "ts"
+
+[[macos.walkfs]]
+walkfs_path = "/etc/ssh"
+path_glob = "**/*"
+description = "SSH server configuration: {path}"
+timestamp_field = "mtime"
+
+[unix.functions."openssh.authorized_keys"]
+description = "SSH authorized_keys: {comment} — {path}"
+timestamp_field = "ts"
+
+[unix.functions."openssh.known_hosts"]
+description = "SSH known_hosts: {host} — {path}"
+timestamp_field = "mtime_ts"
+
+[[unix.walkfs]]
+walkfs_path = "/etc/ssh"
+path_glob = "**/*"
+description = "SSH server configuration: {path}"
+timestamp_field = "mtime"
+
+[bsd.functions."openssh.authorized_keys"]
+description = "SSH authorized_keys: {comment} — {path}"
+timestamp_field = "ts"

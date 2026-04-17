@@ -1,3 +1,14 @@
+Metadata-Version: 2.4
+Name: dissect-extract
+Version: 0.1.0
+Summary: Timeline extraction and labeling using dissect.target (Python API)
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: dissect.target>=3.20
+Requires-Dist: tomli>=2.0.1; python_version < "3.11"
+Provides-Extra: dev
+Requires-Dist: ruff>=0.6; extra == "dev"
+
 # dissect-extract
 
 This project builds on the [dissect framework](https://docs.dissect.tools) to automatically extract common triage artifacts from one or more targets, super-timeline and label. Includes a configurable set of targeted artifacts for each major operating system family (Windows, Unix, Mac OS).
