@@ -3,7 +3,7 @@ from __future__ import annotations
 import base64
 import re
 import sys
-from datetime import date, datetime
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -21,7 +21,7 @@ def load_toml(path: Path) -> dict[str, Any]:
 def format_record_value(v: Any) -> str:
     if v is None:
         return ""
-    if isinstance(v, datetime):
+    if isinstance(v, date):
         return v.isoformat()
     if isinstance(v, Path):
         return str(v)
@@ -39,13 +39,15 @@ def record_mapping(rec: Any) -> dict[str, Any]:
     return {k: getattr(rec, k) for k in dir(rec) if not k.startswith("_")}
 
 
-def pick_timestamp(mapping: dict[str, Any], preferred: str | None) -> datetime | None:
+def pick_timestamp(mapping: dict[str, Any], preferred: str | None) -> date | None:
+    """Return a calendar date or datetime from *mapping* (``datetime`` subclasses ``date``)."""
+
     if preferred and mapping.get(preferred):
         v = mapping[preferred]
-        return v if isinstance(v, datetime) else None
+        return v if isinstance(v, date) else None
     for key in ("ts", "mtime", "btime", "ctime", "atime", "regf_mtime", "ts_mtime", "last_modified", "time"):
         v = mapping.get(key)
-        if isinstance(v, datetime):
+        if isinstance(v, date):
             return v
     return None
 
@@ -110,8 +112,6 @@ def to_jsonable(value: Any) -> Any:
 
     if value is None or isinstance(value, (bool, int, float, str)):
         return value
-    if isinstance(value, datetime):
-        return value.isoformat()
     if isinstance(value, date):
         return value.isoformat()
     if isinstance(value, Path):
