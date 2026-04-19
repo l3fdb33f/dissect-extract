@@ -4,6 +4,7 @@ dissect_extract/__init__.py
 dissect_extract/__main__.py
 dissect_extract/cli.py
 dissect_extract/engine.py
+dissect_extract/keywords.py
 dissect_extract/util.py
 dissect_extract.egg-info/PKG-INFO
 dissect_extract.egg-info/SOURCES.txt

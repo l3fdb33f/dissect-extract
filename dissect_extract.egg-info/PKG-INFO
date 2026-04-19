@@ -1,4 +1,4 @@
-Metadata-Version: 2.4
+Metadata-Version: 2.1
 Name: dissect-extract
 Version: 0.1.0
 Summary: Timeline extraction and labeling using dissect.target (Python API)

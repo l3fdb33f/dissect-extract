@@ -1,20 +1,27 @@
 from __future__ import annotations
 
 import importlib.resources
+import itertools
 import json
 import logging
 from collections.abc import Iterator
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 from dissect.target import Target
 from dissect.target.exceptions import PluginError, UnsupportedPluginError
 
+try:
+    from dissect.target.plugins.filesystem.yara import HAS_YARA as _DISSECT_HAS_YARA
+except ImportError:
+    _DISSECT_HAS_YARA = False
+
 from dissect_extract.keywords import KeywordFilter
 from dissect_extract.util import (
     fnmatch_path,
     format_path,
+    format_record_value,
     load_toml,
     match_scenario,
     normalize_os_slug,
@@ -25,6 +32,128 @@ from dissect_extract.util import (
 )
 
 log = logging.getLogger(__name__)
+
+LINUX_YARA_RULES = "linux_implant_yara.yar"
+YARA_LINUX_PERSISTENCE_FN = "yara:linux-persistence"
+MAX_LINUX_YARA_SCAN_SIZE = 64 * 1024 * 1024
+
+_YARA_RULE_KIND_LABEL: dict[str, str] = {
+    "golang_elf_implant_heuristic": "Golang",
+    "rust_elf_implant_heuristic": "Rust",
+    "php_webshell_common": "Webshell",
+}
+
+
+class _DictAsRecord:
+    """Minimal stand-in for flow.record rows so ``record_mapping`` can use ``_asdict``."""
+
+    __slots__ = ("_data",)
+
+    def __init__(self, data: dict[str, Any]) -> None:
+        self._data = data
+
+    def _asdict(self, exclude: list[str] | None = None) -> dict[str, Any]:
+        return dict(self._data)
+
+
+def _norm_posix_path(p: Any) -> str:
+    s = format_path(p).replace("\\", "/")
+    while "//" in s:
+        s = s.replace("//", "/")
+    if len(s) > 1:
+        s = s.rstrip("/")
+    return s or "/"
+
+
+def _linux_walkfs_record_for_path(target: Target, want_path: str) -> Any | None:
+    """Return the ``walkfs`` filesystem/entry row for *want_path*, without walking from ``/``."""
+
+    want = _norm_posix_path(want_path)
+    if want in ("", "/"):
+        return None
+    parent = str(PurePosixPath(want).parent)
+    if parent == ".":
+        parent = "/"
+    if parent == "/":
+        return None
+    out = _call_plugin_function(target, "walkfs", {"walkfs_path": parent})
+    if out is None:
+        return None
+    for rec in out:
+        m = record_mapping(rec)
+        if _norm_posix_path(m.get("path")) == want:
+            return rec
+    return None
+
+
+def _iter_linux_yara_persistence(
+    target: Target,
+    categories: list[str],
+    *,
+    persistence_os_filter: frozenset[str] | None,
+) -> Iterator[tuple[str, str, dict[str, Any], list[dict[str, Any]], str, Any]]:
+    if "persistence-execution" not in categories:
+        return
+    try:
+        target_os = target.os
+    except Exception:
+        return
+    if normalize_os_slug(target_os) != "linux":
+        return
+    if persistence_os_filter is not None and "linux" not in persistence_os_filter:
+        return
+    if not _DISSECT_HAS_YARA:
+        log.debug("yara-python not installed; skipping Linux YARA persistence scan")
+        return
+    ref = importlib.resources.files("dissect_extract.data") / LINUX_YARA_RULES
+    meta = {
+        "description": (
+            "Possible Persistence: {kind_label} based on the YARA rule matching ({path}, rule {yara_rule})"
+        ),
+        "timestamp_field": "mtime",
+    }
+    scenarios: list[dict[str, Any]] = []
+    with importlib.resources.as_file(ref) as rules_path:
+        out = _call_plugin_function(
+            target,
+            "yara",
+            {
+                "rules": [str(rules_path)],
+                "path": "/",
+                "max_size": MAX_LINUX_YARA_SCAN_SIZE,
+            },
+        )
+        if out is None:
+            return
+        for yrec in out:
+            ym = record_mapping(yrec)
+            rule = format_record_value(ym.get("rule", ""))
+            kind_label = _YARA_RULE_KIND_LABEL.get(rule, rule)
+            path_val = ym.get("path")
+            path_s = _norm_posix_path(path_val)
+            wf = _linux_walkfs_record_for_path(target, path_s)
+            if wf is not None:
+                merged = record_mapping(wf)
+                merged["yara_rule"] = rule
+                merged["kind_label"] = kind_label
+                merged["_type"] = "filesystem/entry"
+            else:
+                merged = {
+                    "path": path_val,
+                    "mtime": ym.get("ts_mtime"),
+                    "yara_rule": rule,
+                    "kind_label": kind_label,
+                    "_type": "filesystem/yara/match",
+                }
+            yield (
+                "persistence-execution",
+                YARA_LINUX_PERSISTENCE_FN,
+                meta,
+                scenarios,
+                target_os,
+                _DictAsRecord(merged),
+            )
+
 
 CATEGORY_FILES = {
     "persistence-execution": "persistence_execution.toml",
@@ -195,11 +324,19 @@ def collect_events(
             dump_jsonl_path.parent.mkdir(parents=True, exist_ok=True)
             dump_f = dump_jsonl_path.open("w", encoding="utf-8", newline="\n")
 
-        for category, func_name, meta, scenarios, target_os, rec in _iter_applicable_records(
-            target,
-            categories,
-            persistence_os_filter=persistence_os_filter,
-        ):
+        combined = itertools.chain(
+            _iter_applicable_records(
+                target,
+                categories,
+                persistence_os_filter=persistence_os_filter,
+            ),
+            _iter_linux_yara_persistence(
+                target,
+                categories,
+                persistence_os_filter=persistence_os_filter,
+            ),
+        )
+        for category, func_name, meta, scenarios, target_os, rec in combined:
             mapping = record_mapping(rec)
             desc, ts_f = _describe_record(func_name, mapping, meta, scenarios, target_os)
             if keyword_filter is not None and keyword_filter.active:
@@ -216,6 +353,8 @@ def collect_events(
             rtype_s = str(rtype) if rtype else None
             if func_name.startswith("walkfs:"):
                 rtype_s = rtype_s or "filesystem/entry"
+            elif func_name == YARA_LINUX_PERSISTENCE_FN:
+                rtype_s = format_record_value(mapping.get("_type")) or "filesystem/yara/match"
             events.append(
                 TimelineEvent(
                     timestamp=ts.isoformat() if ts else None,
