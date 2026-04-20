@@ -101,7 +101,7 @@ def any_field_nonzero(mapping: dict[str, Any], field_names: list[Any]) -> bool:
 
 
 def function_entry_matches_filters(meta: dict[str, Any], mapping: dict[str, Any]) -> bool:
-    """Apply optional ``any_field_nonzero`` and ``field_contains`` keys on a TOML function block."""
+    """Apply optional filter keys on a TOML function block."""
 
     nonzero = meta.get("any_field_nonzero")
     if isinstance(nonzero, list) and nonzero:
@@ -112,6 +112,11 @@ def function_entry_matches_filters(meta: dict[str, Any], mapping: dict[str, Any]
         for field, needle in fc.items():
             hay = format_record_value(mapping.get(field, ""))
             if str(needle).lower() not in hay.lower():
+                return False
+    frx = meta.get("field_regex")
+    if isinstance(frx, dict):
+        for field, pattern in frx.items():
+            if not re.search(str(pattern), format_record_value(mapping.get(field, ""))):
                 return False
     return True
 

@@ -67,6 +67,11 @@ timestamp_field = "ts"
 description = "Prefetch execution evidence: {path} (executable {executable})"
 timestamp_field = "ts"
 
+[windows.functions.evtx]
+description = "Process execution (Security 4688): {NewProcessName} — cmdline {CommandLine} (parent {ParentProcessName})"
+timestamp_field = "ts"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4688$" }
+
 [windows.functions.powershell_history]
 description = "PowerShell command history (execution): {command}"
 timestamp_field = "mtime"

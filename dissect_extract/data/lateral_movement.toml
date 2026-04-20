@@ -7,6 +7,174 @@ field_contains = { message = "RDP" }
 description = "Remote access log mentions RDP: {message} ({source})"
 timestamp_field = "ts"
 
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4624$" }
+description = "Auth (lateral movement): Successful logon (4624). Look at LogonType for remote/network (Type 3) vs interactive/RDP (Type 10/3). ({source})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4625$" }
+description = "Auth (lateral movement): Failed logon attempt (4625) — may indicate password spraying or invalid credential use. ({source})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4648$" }
+description = "Auth (lateral movement): Explicit credentials were used (4648) — often seen with remote tooling that supplies a username/password. ({source})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4672$" }
+description = "Privilege (lateral movement): Special privileges assigned to new logon (4672) — elevated/admin logon context. ({source})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4768$" }
+description = "Kerberos (DC): Ticket Granting Ticket issued (4768) — domain account authentication. ({source})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4769$" }
+description = "Kerberos (DC): Service ticket issued (4769) — authenticated access to a specific service/resource; useful for tracking pivots. ({source})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4776$" }
+description = "NTLM auth (lateral movement): NTLM authentication (4776). On non-DC hosts this can indicate local-account auth or tool-driven authentication/downgrade. ({source})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^5140$" }
+description = "SMB (lateral movement): Network share object accessed (5140) — common during remote execution and admin share use. ({source})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4778$" }
+description = "RDP/session: Session reconnected (4778). SessionName helps differentiate local Console vs remote RDP sessions. ({source})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4779$" }
+description = "RDP/session: Session disconnected (4779). SessionName helps differentiate local vs remote RDP. ({source})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Service Control Manager$", EventID = "^7045$" }
+description = "Remote exec (PsExec/sc pattern): New service installed (7045) — often indicates remote service creation used for execution/pivoting. ({source})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Service Control Manager$", EventID = "^7036$" }
+description = "Service state change (7036): Service started/stopped — can corroborate remote-service execution (e.g., PsExec service lifecycle). ({source})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4697$" }
+description = "Service install (Security): Service was installed (4697) — corroborates service-based remote execution. ({source})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-WMI-Activity$", EventID = "^(5860|5861)$" }
+description = "WMI activity (lateral movement/persistence): WMI-Activity operational events (5860/5861) — can indicate remote WMI execution or suspicious consumers/filters. ({source})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-WinRM$", EventID = "^6$" }
+description = "WinRM (lateral movement): WinRM connection initiated (Event 6) — indicates outbound remoting attempt from this host. ({source})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-WinRM$", EventID = "^91$" }
+description = "WinRM (lateral movement): WinRM connection received (Event 91) — indicates inbound remoting/auth on this host. ({source})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-PowerShell$", EventID = "^4103$" }
+description = "PowerShell remoting/execution: Module logging pipeline execution (4103) — can show remote vs local host context. ({source})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-PowerShell$", EventID = "^4104$" }
+description = "PowerShell remoting/execution: Script Block Logging (4104) — de-obfuscated script blocks; high-signal for lateral movement tooling. ({source})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Windows PowerShell$", EventID = "^400$" }
+description = "PowerShell session: Engine start / start of execution (400) — can reflect remote vs console host context. ({source})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Windows PowerShell$", EventID = "^800$" }
+description = "PowerShell pipeline: Pipeline execution details (800) — look for encoded (-enc) command lines and remote host context. ({source})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-TerminalServices-LocalSessionManager$", EventID = "^(21|22|25|24|41)$" }
+description = "RDP (LSM Operational): Session lifecycle event (21/22/25/24/41) — can include initiating IP/username for inbound RDP sessions. ({source})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-TerminalServices-RemoteConnectionManager$", EventID = "^1149$" }
+description = "RDP (RCM Operational): Remote Desktop authentication succeeded (1149) — includes initiating IP and user. ({source})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-RemoteDesktopServices-RdpCoreTS$", EventID = "^131$" }
+description = "RDP (RdpCoreTS Operational): RDP connection event (131) — can include initiating IP and user depending on configuration. ({source})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-TerminalServices-RDPClient$", EventID = "^(1024|1102)$" }
+description = "RDP client (outbound): RDPClient Operational connection record (1024/1102) — indicates this host initiated RDP to another system. ({source})"
+timestamp_field = "ts"
+
 [windows.functions.remoteaccess]
 description = "Remote access tool log (TeamViewer, AnyDesk, etc.): {message} ({source})"
 timestamp_field = "ts"
@@ -22,6 +190,12 @@ timestamp_field = "mtime"
 [windows.functions."mru.mstsc"]
 description = "MSTSC MRU — recent RDP target: {value} (key {key})"
 timestamp_field = "regf_mtime"
+
+[windows.functions.evtx]
+description = "Event log lateral-movement signal: {Provider_Name} EventID {EventID} ({source})"
+timestamp_field = "ts"
+# Filtered to high-signal event IDs/providers from the Lateral Movement Analyst Reference.
+field_regex = { Provider_Name = "(?i)^(Microsoft-Windows-Security-Auditing|Service Control Manager|Microsoft-Windows-TerminalServices-LocalSessionManager|Microsoft-Windows-TerminalServices-RemoteConnectionManager|Microsoft-Windows-RemoteDesktopServices-RdpCoreTS|Microsoft-Windows-TerminalServices-RDPClient|Microsoft-Windows-WMI-Activity|Microsoft-Windows-WinRM|Microsoft-Windows-PowerShell|Windows PowerShell)$", EventID = "^(4624|4625|4648|4672|4768|4769|4776|5140|4778|4779|7045|7036|4697|5860|5861|6|91|4103|4104|400|800|21|22|24|25|41|1149|131|1024|1102)$" }
 
 [windows.functions."openssh.authorized_keys"]
 description = "authorized_keys on Windows host: {comment} — {path}"

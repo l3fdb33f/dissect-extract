@@ -114,7 +114,7 @@ Below is what the **shipped TOML** wires up. Exact availability depends on the i
 
 ### Persistence and execution (`--pe`)
 
-**Windows** — functions include: `runkeys`, `services`, `tasks`, `userassist`, `appinit`, `bootshell`, `alternateshell`, `winlogon`, `startupinfo`, `shimcache`, `amcache`, `muicache`, `prefetch`, `powershell_history`, `usnjrnl`, `defender.quarantine`, `msoffice.startup`, `msoffice.native`, `msoffice.web`. Walkfs: `C:/Windows/System32/Tasks`, All Users Startup, `C:/Windows/Prefetch` (`*.pf`). Scenario: Run key commands containing PowerShell.
+**Windows** — functions include: `runkeys`, `services`, `tasks`, `userassist`, `appinit`, `bootshell`, `alternateshell`, `winlogon`, `startupinfo`, `shimcache`, `amcache`, `muicache`, `prefetch`, `evtx` (filtered to Security-Auditing 4688 process creation), `powershell_history`, `usnjrnl`, `defender.quarantine`, `msoffice.startup`, `msoffice.native`, `msoffice.web`. Walkfs: `C:/Windows/System32/Tasks`, All Users Startup, `C:/Windows/Prefetch` (`*.pf`). Scenario: Run key commands containing PowerShell.
 
 **Linux** — functions: `cronjobs`, `services`, `journal`, `bashhistory`, `commandhistory`, `openssh.authorized_keys`. Walkfs: `/etc/cron.d`, `/etc/cron.daily`, `/etc/systemd/system`, `/lib/systemd/system`, `/etc/init.d`, `/etc/rc.local`, `/etc/profile.d`, user `/home/**/.ssh/**`, `/root/**.ssh**`. Scenario: systemd unit name contains `.timer`.
 
@@ -126,7 +126,7 @@ Below is what the **shipped TOML** wires up. Exact availability depends on the i
 
 ### Lateral movement (`--lm`)
 
-**Windows** — `remoteaccess`, `rdpcache.paths`, `mru.mstsc`, `openssh.authorized_keys`, `ual.client_access` (User Access Logging / incoming client usage); walkfs: `C:/Windows/System32/config/systemprofile/.ssh`. Scenario: remote access message mentions RDP.
+**Windows** — `remoteaccess`, `ual.client_access` (User Access Logging / incoming client usage), `evtx` (filtered to high-signal lateral-movement Event IDs/providers), `rdpcache.paths`, `mru.mstsc`, `openssh.authorized_keys`; walkfs: `C:/Windows/System32/config/systemprofile/.ssh`. Scenario: remote access message mentions RDP.
 
 **Linux** — `openssh.authorized_keys`, `openssh.known_hosts`, `remoteaccess`, `lastlog`, `wtmp`, `btmp`, `utmp`, `journal`; walkfs: `/etc/ssh`, `/home/**/.ssh/**`.
 
