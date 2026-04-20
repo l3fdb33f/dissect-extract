@@ -80,6 +80,7 @@ def main(argv: list[str] | None = None) -> int:
     cat.add_argument("--lm", "--lateral-movement", action="store_true", help="Lateral movement")
     cat.add_argument("--da", "--data-access", action="store_true", help="Data access")
     cat.add_argument("--de", "--data-exfiltration", action="store_true", help="Data exfiltration")
+    cat.add_argument("--ia", "--initial-access", action="store_true", help="Initial access (delivery, downloads, web logs)")
 
     sub = parser.add_argument_group("persistence scope by OS (optional; limits which bundle applies)")
     sub.add_argument(
@@ -141,9 +142,11 @@ def main(argv: list[str] | None = None) -> int:
         categories.append("data-access")
     if args.de:
         categories.append("data-exfiltration")
+    if args.ia:
+        categories.append("initial-access")
 
     if not categories:
-        parser.error("Select at least one category (--pe, --lm, --da, --de)")
+        parser.error("Select at least one category (--pe, --lm, --da, --de, --ia)")
 
     kw_batches: list[list[str]] = []
     if args.keyword_list:

@@ -28,7 +28,7 @@ description = "Scheduled Task (execution / persistence): {task_name} — {action
 timestamp_field = "date"
 
 [windows.functions.userassist]
-description = "UserAssist execution evidence: {value} (subkey {subkey})"
+description = "UserAssist execution evidence: {path} (executions {number_of_executions}, focus_count {application_focus_count})"
 timestamp_field = "ts"
 
 [windows.functions.appinit]
@@ -74,6 +74,22 @@ timestamp_field = "mtime"
 [windows.functions.usnjrnl]
 description = "NTFS USN Journal change record (often execution / file ops): {path} — reason {reason}"
 timestamp_field = "ts"
+
+[windows.functions."defender.quarantine"]
+description = "Microsoft Defender quarantine (threat / execution context): {detection_name} — {detection_type} (quarantine_id {quarantine_id}, scan_id {scan_id})"
+timestamp_field = "ts"
+
+[windows.functions."msoffice.startup"]
+description = "Microsoft Office startup folder item (persistence): {path}"
+timestamp_field = "modification_time"
+
+[windows.functions."msoffice.native"]
+description = "Microsoft Office COM/VSTO add-in (persistence): {name} — {type}, load_behavior {load_behavior}, loaded {loaded}, manifest {manifest}"
+timestamp_field = "modification_time"
+
+[windows.functions."msoffice.web"]
+description = "Microsoft Office web add-in / WEF (persistence): {name} — {provider_name} v{version}, sources {source_locations}, manifest {manifest}"
+timestamp_field = "modification_time"
 
 [[windows.walkfs]]
 walkfs_path = "C:/Windows/System32/Tasks"

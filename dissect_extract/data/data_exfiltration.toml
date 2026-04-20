@@ -23,6 +23,16 @@ timestamp_field = "ts_last_used"
 description = "PowerShell history (may include archive / upload commands): {command}"
 timestamp_field = "mtime"
 
+[windows.functions."sru.network_data"]
+description = "SRUM network data (non-zero bytes — possible exfil / transfer): {app} — user {user}, bytes_sent {bytes_sent}, bytes_recvd {bytes_recvd}"
+timestamp_field = "ts"
+any_field_nonzero = ["bytes_sent", "bytes_recvd"]
+
+[windows.functions."sru.application_timeline"]
+description = "SRUM application timeline (non-zero network_bytes_raw — possible network exfil): {app} — user {user}, network_bytes_raw {network_bytes_raw}"
+timestamp_field = "ts"
+any_field_nonzero = ["network_bytes_raw"]
+
 [[windows.walkfs]]
 walkfs_path = "C:/Users"
 path_substring = "/Downloads/"

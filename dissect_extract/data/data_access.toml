@@ -19,6 +19,14 @@ timestamp_field = "ts"
 description = "SRUM application timeline (program/resource use): {app} — user {user}"
 timestamp_field = "ts"
 
+[windows.functions."jumplist.automatic_destination"]
+description = "Jump List automatic destination (recent item / data access): {application_name} — {lnk_full_path} ({type}; .lnk {lnk_path})"
+timestamp_field = "target_mtime"
+
+[windows.functions."mru.msoffice"]
+description = "Microsoft Office MRU (recent file or place): {value} (key {key})"
+timestamp_field = "ts"
+
 [[windows.walkfs]]
 walkfs_path = "C:/Users"
 path_substring = "/Recent/"

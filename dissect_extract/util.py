@@ -45,7 +45,19 @@ def pick_timestamp(mapping: dict[str, Any], preferred: str | None) -> date | Non
     if preferred and mapping.get(preferred):
         v = mapping[preferred]
         return v if isinstance(v, date) else None
-    for key in ("ts", "mtime", "btime", "ctime", "atime", "regf_mtime", "ts_mtime", "last_modified", "time"):
+    for key in (
+        "ts",
+        "mtime",
+        "btime",
+        "ctime",
+        "atime",
+        "target_mtime",
+        "lnk_mtime",
+        "regf_mtime",
+        "ts_mtime",
+        "last_modified",
+        "time",
+    ):
         v = mapping.get(key)
         if isinstance(v, date):
             return v
@@ -67,6 +79,25 @@ def safe_format(template: str, mapping: dict[str, Any]) -> str:
         return template.format(**flat)
     except (KeyError, ValueError):
         return template
+
+
+def any_field_nonzero(mapping: dict[str, Any], field_names: list[Any]) -> bool:
+    """True if at least one named field is present and numerically non-zero (or truthy for non-numeric)."""
+
+    if not field_names:
+        return True
+    for raw in field_names:
+        name = str(raw)
+        v = mapping.get(name)
+        if v is None:
+            continue
+        try:
+            if int(v) != 0:
+                return True
+        except (TypeError, ValueError):
+            if v:
+                return True
+    return False
 
 
 def match_scenario(

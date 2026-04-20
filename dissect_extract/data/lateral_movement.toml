@@ -11,6 +11,10 @@ timestamp_field = "ts"
 description = "Remote access tool log (TeamViewer, AnyDesk, etc.): {message} ({source})"
 timestamp_field = "ts"
 
+[windows.functions."ual.client_access"]
+description = "User Access Log client access (incoming client / server role use): {authenticated_user} @ {client_name} ({address}) — {role_name} ({product_name}), access_count {access_count}"
+timestamp_field = "access_date"
+
 [windows.functions."rdpcache.paths"]
 description = "RDP client bitmap cache file (lateral movement artifact): {path}"
 timestamp_field = "mtime"
