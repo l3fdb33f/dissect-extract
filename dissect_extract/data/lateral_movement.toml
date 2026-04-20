@@ -45,6 +45,26 @@ timestamp_field = "mtime_ts"
 description = "Remote access log: {message} ({source})"
 timestamp_field = "ts"
 
+[linux.functions.lastlog]
+description = "Last login (lastlog): user {ut_user} from {ut_host}"
+timestamp_field = "ts"
+
+[linux.functions.wtmp]
+description = "Login/session event (wtmp): type {ut_type}, user {ut_user}, line {ut_line}, host {ut_host} ({ut_addr})"
+timestamp_field = "ts"
+
+[linux.functions.btmp]
+description = "Failed login attempt (btmp): type {ut_type}, user {ut_user}, line {ut_line}, host {ut_host} ({ut_addr})"
+timestamp_field = "ts"
+
+[linux.functions.utmp]
+description = "Current login/session state (utmp): type {ut_type}, user {ut_user}, line {ut_line}, host {ut_host} ({ut_addr})"
+timestamp_field = "ts"
+
+[linux.functions.journal]
+description = "systemd journal (lateral movement / auth context): {comm} ({exe}) pid {pid} uid {uid} — {message} (unit {systemd_unit})"
+timestamp_field = "ts"
+
 [[linux.walkfs]]
 walkfs_path = "/etc/ssh"
 path_glob = "**/*"

@@ -1,4 +1,4 @@
-# Initial access: browser delivery, downloads, Outlook INetCache, web server access logs.
+# Initial access: browser delivery, downloads, Run MRU (clickfix), UAL inbound clients, wget HSTS, Outlook INetCache, web server access logs.
 
 [windows.functions."browser.history"]
 description = "Browser history (initial access / delivery): {title} — {url}"
@@ -16,6 +16,10 @@ timestamp_field = "start_time"
 description = "Open/Save MRU (application file open-save dialogs): {value} (key {key})"
 timestamp_field = "regf_mtime"
 
+[windows.functions."mru.run"]
+description = "Run dialog MRU executed: {value} (key {key})"
+timestamp_field = "regf_mtime"
+
 [windows.functions."iis.access"]
 description = "IIS access log (web exploitation / initial access): {method} {uri} from {remote_ip} — status {status_code}, bytes_sent {bytes_sent} ({source})"
 timestamp_field = "ts"
@@ -27,6 +31,14 @@ timestamp_field = "ts"
 [windows.functions."apache.access"]
 description = "Apache httpd access log (web initial access): {method} {uri} from {remote_ip} — status {status_code}, bytes_sent {bytes_sent} ({source})"
 timestamp_field = "ts"
+
+[windows.functions."ual.client_access"]
+description = "UAL client access (inbound connections / client usage against server roles — initial access): {authenticated_user} @ {client_name} ({address}) — {role_name} ({product_name}), access_count {access_count}"
+timestamp_field = "access_date"
+
+[windows.functions."wget.hsts"]
+description = "wget HSTS entry (HTTPS host seen by wget — possible payload fetch / tool ingress): {host} (source {source})"
+timestamp_field = "ts_created"
 
 [[windows.walkfs]]
 walkfs_path = "C:/Users"
@@ -61,6 +73,10 @@ path_glob = "**/*"
 description = "User Downloads directory (payload / staging): {path}"
 timestamp_field = "mtime"
 
+[linux.functions."wget.hsts"]
+description = "wget HSTS entry (HTTPS host seen by wget — possible payload fetch / tool ingress): {host} (source {source})"
+timestamp_field = "ts_created"
+
 [macos.functions."browser.history"]
 description = "Browser history (initial access / delivery): {title} — {url}"
 timestamp_field = "ts"
@@ -68,6 +84,10 @@ timestamp_field = "ts"
 [macos.functions."browser.downloads"]
 description = "Browser download (initial access): {path} from {url}"
 timestamp_field = "ts_start"
+
+[macos.functions."wget.hsts"]
+description = "wget HSTS entry (HTTPS host seen by wget — possible payload fetch / tool ingress): {host} (source {source})"
+timestamp_field = "ts_created"
 
 [[macos.walkfs]]
 walkfs_path = "/Users"

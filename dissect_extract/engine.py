@@ -19,8 +19,8 @@ except ImportError:
 
 from dissect_extract.keywords import KeywordFilter
 from dissect_extract.util import (
-    any_field_nonzero,
     fnmatch_path,
+    function_entry_matches_filters,
     format_path,
     format_record_value,
     load_toml,
@@ -283,10 +283,8 @@ def _iter_applicable_records(
                 except TypeError:
                     continue
                 for rec in iterator:
-                    nonzero = meta.get("any_field_nonzero")
-                    if nonzero and isinstance(nonzero, list):
-                        if not any_field_nonzero(record_mapping(rec), nonzero):
-                            continue
+                    if not function_entry_matches_filters(meta, record_mapping(rec)):
+                        continue
                     yield category, func_name, meta, scenarios, target_os, rec
 
         for walk in block.get("walkfs", []) or []:

@@ -1,19 +1,4 @@
-# Artifacts commonly tied to collection or exfiltration of data (browsers, transfers, clouds).
-
-[[scenario]]
-os = "windows"
-function = "browser.downloads"
-field_contains = { url = "http" }
-description = "Browser download record (possible exfil / staging): {path} — {url}"
-timestamp_field = "ts_start"
-
-[windows.functions."browser.history"]
-description = "Browser history (sites / cloud consoles visited): {title} — {url}"
-timestamp_field = "ts"
-
-[windows.functions."browser.downloads"]
-description = "Browser download: {path} from {url}"
-timestamp_field = "ts_start"
+# Artifacts tied to collection, staging, or exfiltration of data (not routine browser history/downloads).
 
 [windows.functions."browser.passwords"]
 description = "Browser saved credential (collection risk): {url}"
@@ -22,6 +7,11 @@ timestamp_field = "ts_last_used"
 [windows.functions.powershell_history]
 description = "PowerShell history (may include archive / upload commands): {command}"
 timestamp_field = "mtime"
+
+[windows.functions.usnjrnl]
+description = "NTFS USN Journal with ARCHIVE reason (data staging / collection signal): {path} — {reason}"
+timestamp_field = "ts"
+field_contains = { reason = "ARCHIVE" }
 
 [windows.functions."sru.network_data"]
 description = "SRUM network data (non-zero bytes — possible exfil / transfer): {app} — user {user}, bytes_sent {bytes_sent}, bytes_recvd {bytes_recvd}"
@@ -40,14 +30,6 @@ path_glob = "**/*"
 description = "User Downloads folder object: {path}"
 timestamp_field = "mtime"
 
-[linux.functions."browser.history"]
-description = "Browser history: {title} — {url}"
-timestamp_field = "ts"
-
-[linux.functions."browser.downloads"]
-description = "Browser download: {path} from {url}"
-timestamp_field = "ts_start"
-
 [linux.functions.commandhistory]
 description = "Shell history (curl/wget/scp patterns possible): {command}"
 timestamp_field = "ts"
@@ -58,26 +40,6 @@ path_glob = "**/*"
 description = "/tmp object (staging): {path}"
 timestamp_field = "mtime"
 
-[macos.functions."browser.history"]
-description = "Browser history: {title} — {url}"
-timestamp_field = "ts"
-
-[macos.functions."browser.downloads"]
-description = "Browser download: {path} from {url}"
-timestamp_field = "ts_start"
-
 [macos.functions.commandhistory]
 description = "Shell history: {command}"
-timestamp_field = "ts"
-
-[unix.functions."browser.history"]
-description = "Browser history: {title} — {url}"
-timestamp_field = "ts"
-
-[unix.functions."browser.downloads"]
-description = "Browser download: {path} from {url}"
-timestamp_field = "ts_start"
-
-[bsd.functions."browser.history"]
-description = "Browser history: {title} — {url}"
 timestamp_field = "ts"

@@ -117,6 +117,10 @@ timestamp_field = "ts"
 description = "Service / systemd unit / init script (persistence): {name} ({type}) — {source}"
 timestamp_field = "ts"
 
+[linux.functions.journal]
+description = "systemd journal (execution / persistence context): {comm} ({exe}) pid {pid} uid {uid} — {message} (unit {systemd_unit})"
+timestamp_field = "ts"
+
 [linux.functions.bashhistory]
 description = "Bash history command (execution): {command}"
 timestamp_field = "ts"

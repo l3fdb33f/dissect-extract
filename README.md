@@ -110,13 +110,13 @@ dissect-timeline --pe --pel --lm /data/linux.dd -o out.json
 
 ## Artifacts by category and OS
 
-Below is what the **shipped TOML** wires up. Exact availability depends on the image (plugins that do not apply or fail are skipped). **Walkfs** entries enumerate files under a root on the target filesystem. **Functions** are Dissect plugin methods. **Scenarios** (see `persistence_execution.toml` and others) swap in alternate descriptions when their filters match. Some function blocks use **`any_field_nonzero`** (see `data_exfiltration.toml`): those records are skipped unless at least one listed numeric field is non-zero.
+Below is what the **shipped TOML** wires up. Exact availability depends on the image (plugins that do not apply or fail are skipped). **Walkfs** entries enumerate files under a root on the target filesystem. **Functions** are Dissect plugin methods. **Scenarios** (see `persistence_execution.toml` and others) swap in alternate descriptions when their filters match. Some function blocks use **`any_field_nonzero`** or **`field_contains`** (see `data_exfiltration.toml`): records are skipped unless those filters match (e.g. SRUM byte counters non-zero, or USN `reason` containing `ARCHIVE`).
 
 ### Persistence and execution (`--pe`)
 
 **Windows** — functions include: `runkeys`, `services`, `tasks`, `userassist`, `appinit`, `bootshell`, `alternateshell`, `winlogon`, `startupinfo`, `shimcache`, `amcache`, `muicache`, `prefetch`, `powershell_history`, `usnjrnl`, `defender.quarantine`, `msoffice.startup`, `msoffice.native`, `msoffice.web`. Walkfs: `C:/Windows/System32/Tasks`, All Users Startup, `C:/Windows/Prefetch` (`*.pf`). Scenario: Run key commands containing PowerShell.
 
-**Linux** — functions: `cronjobs`, `services`, `bashhistory`, `commandhistory`, `openssh.authorized_keys`. Walkfs: `/etc/cron.d`, `/etc/cron.daily`, `/etc/systemd/system`, `/lib/systemd/system`, `/etc/init.d`, `/etc/rc.local`, `/etc/profile.d`, user `/home/**/.ssh/**`, `/root/**.ssh**`. Scenario: systemd unit name contains `.timer`.
+**Linux** — functions: `cronjobs`, `services`, `journal`, `bashhistory`, `commandhistory`, `openssh.authorized_keys`. Walkfs: `/etc/cron.d`, `/etc/cron.daily`, `/etc/systemd/system`, `/lib/systemd/system`, `/etc/init.d`, `/etc/rc.local`, `/etc/profile.d`, user `/home/**/.ssh/**`, `/root/**.ssh**`. Scenario: systemd unit name contains `.timer`.
 
 **Additional Linux (code path, not TOML)**: full-filesystem YARA scan using bundled rules (`linux_implant_yara.yar`) via the `yara` plugin when `yara-python` is installed; matches are labeled in the timeline and enriched with `walkfs` metadata when practical.
 
@@ -128,7 +128,7 @@ Below is what the **shipped TOML** wires up. Exact availability depends on the i
 
 **Windows** — `remoteaccess`, `rdpcache.paths`, `mru.mstsc`, `openssh.authorized_keys`, `ual.client_access` (User Access Logging / incoming client usage); walkfs: `C:/Windows/System32/config/systemprofile/.ssh`. Scenario: remote access message mentions RDP.
 
-**Linux** — `openssh.authorized_keys`, `openssh.known_hosts`, `remoteaccess`; walkfs: `/etc/ssh`, `/home/**/.ssh/**`.
+**Linux** — `openssh.authorized_keys`, `openssh.known_hosts`, `remoteaccess`, `lastlog`, `wtmp`, `btmp`, `utmp`, `journal`; walkfs: `/etc/ssh`, `/home/**/.ssh/**`.
 
 **macOS** — `openssh.authorized_keys`; walkfs: `/etc/ssh`.
 
@@ -150,23 +150,19 @@ Below is what the **shipped TOML** wires up. Exact availability depends on the i
 
 ### Data exfiltration (`--de`)
 
-**Windows** — `browser.history`, `browser.downloads`, `browser.passwords`, `powershell_history`, `sru.network_data` (only if `bytes_sent` or `bytes_recvd` ≠ 0), `sru.application_timeline` (only if `network_bytes_raw` ≠ 0); scenario: browser download URL contains `http`. Walkfs: `C:/Users/**/Downloads/**`.
+**Windows** — `browser.passwords`, `powershell_history`, `usnjrnl` (only if `reason` contains `ARCHIVE`), `sru.network_data` (only if `bytes_sent` or `bytes_recvd` ≠ 0), `sru.application_timeline` (only if `network_bytes_raw` ≠ 0). Walkfs: `C:/Users/**/Downloads/**`.
 
-**Linux** — `browser.history`, `browser.downloads`, `commandhistory`; walkfs: `/tmp/**`.
+**Linux** — `commandhistory`; walkfs: `/tmp/**`.
 
-**macOS** — `browser.history`, `browser.downloads`, `commandhistory`.
-
-**Unix** — `browser.history`, `browser.downloads`.
-
-**BSD** — `browser.history`.
+**macOS** — `commandhistory`.
 
 ### Initial access (`--ia`)
 
-**Windows** — `browser.history`, `browser.downloads`, `activitiescache` (Timeline / multi-app activity), `mru.opensave` (Open/Save dialog MRU for non-browser apps), unified web access logs: `iis.access`, `nginx.access`, `apache.access` (each only yields when that stack exists). Walkfs: per-user **`Downloads`**, and **`%LocalAppData%\Microsoft\Windows\INetCache\Content.Outlook`** under `C:/Users`.
+**Windows** — `browser.history`, `browser.downloads`, `activitiescache` (Timeline / multi-app activity), `mru.opensave` (Open/Save dialog MRU for non-browser apps), `mru.run` (RunMRU / Win+R history; clickfix-relevant), `ual.client_access` (UAL inbound client / server-role access), `wget.hsts` (wget HSTS cache when present), unified web access logs: `iis.access`, `nginx.access`, `apache.access` (each only yields when that stack exists). Walkfs: per-user **`Downloads`**, and **`%LocalAppData%\Microsoft\Windows\INetCache\Content.Outlook`** under `C:/Users`.
 
-**Linux** — `nginx.access`, `apache.access`, `caddy.access` (when those servers/logs are present). Walkfs: **`/home/**/Downloads/**`**.
+**Linux** — `nginx.access`, `apache.access`, `caddy.access` (when those servers/logs are present), `wget.hsts`. Walkfs: **`/home/**/Downloads/**`**.
 
-**macOS** — `browser.history`, `browser.downloads`. Walkfs: **`/Users/**/Downloads/**`**.
+**macOS** — `browser.history`, `browser.downloads`, `wget.hsts`. Walkfs: **`/Users/**/Downloads/**`**.
 
 ## Output shape
 

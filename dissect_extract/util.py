@@ -100,6 +100,22 @@ def any_field_nonzero(mapping: dict[str, Any], field_names: list[Any]) -> bool:
     return False
 
 
+def function_entry_matches_filters(meta: dict[str, Any], mapping: dict[str, Any]) -> bool:
+    """Apply optional ``any_field_nonzero`` and ``field_contains`` keys on a TOML function block."""
+
+    nonzero = meta.get("any_field_nonzero")
+    if isinstance(nonzero, list) and nonzero:
+        if not any_field_nonzero(mapping, nonzero):
+            return False
+    fc = meta.get("field_contains")
+    if isinstance(fc, dict):
+        for field, needle in fc.items():
+            hay = format_record_value(mapping.get(field, ""))
+            if str(needle).lower() not in hay.lower():
+                return False
+    return True
+
+
 def match_scenario(
     rules: dict[str, Any],
     func_name: str,
