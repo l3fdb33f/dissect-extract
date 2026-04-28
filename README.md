@@ -4,7 +4,7 @@ This project builds on the [Dissect](https://docs.dissect.tools) framework (`dis
 
 ## What you get
 
-- **Categories** you can mix and match: persistence and execution, lateral movement, data access, data exfiltration, and initial access.
+- **Categories** you can mix and match: initial access, persistence and execution, lateral movement, data access, and data exfiltration.
 - **Per-OS behavior**: only the section that matches the target’s detected OS is used (with limited fallbacks, for example `unix` for some non-Linux Unix targets).
 - **Scenario overrides**: a few high-signal patterns (for example “Run key + PowerShell”, “systemd timer”) can replace the default description for matching rows.
 - **Optional keyword filter**: keep only events whose fields, category, source function, or description match your terms.
@@ -60,11 +60,11 @@ python -m dissect_extract.cli [OPTIONS] TARGET [TARGET ...]
 
   | Flag | Category |
   |------|----------|
+  | `--ia` / `--initial-access` | Initial access (delivery, downloads, web logs) |
   | `--pe` / `--persistence-execution` | Persistence and execution |
   | `--lm` / `--lateral-movement` | Lateral movement |
   | `--da` / `--data-access` | Data access |
   | `--de` / `--data-exfiltration` | Data exfiltration |
-  | `--ia` / `--initial-access` | Initial access (delivery, downloads, web logs) |
 
 - **Output**: JSON (default) or CSV (`-f csv`). Default output is stdout (`-o` to write a file).
 
@@ -112,6 +112,16 @@ dissect-timeline --pe --pel --lm /data/linux.dd -o out.json
 
 Below is what the **shipped TOML** wires up. Exact availability depends on the image (plugins that do not apply or fail are skipped). **Walkfs** entries enumerate files under a root on the target filesystem. **Functions** are Dissect plugin methods. **Scenarios** (see `persistence_execution.toml` and others) swap in alternate descriptions when their filters match. Some function blocks use **`any_field_nonzero`** or **`field_contains`** (see `data_exfiltration.toml`): records are skipped unless those filters match (e.g. SRUM byte counters non-zero, or USN `reason` containing `ARCHIVE`).
 
+### Initial access (`--ia`)
+
+**Note**: Initial access is intentionally **noisy**. When enabled, it may emit a large number of rows due to broad parsing of web server access logs (IIS/nginx/Apache/Caddy) without a tight, single indicator focus.
+
+**Windows** — `browser.history`, `browser.downloads`, `activitiescache` (Timeline / multi-app activity), `mru.opensave` (Open/Save dialog MRU for non-browser apps), `mru.run` (RunMRU / Win+R history; clickfix-relevant), `ual.client_access` (UAL inbound client / server-role access), `wget.hsts` (wget HSTS cache when present), unified web access logs: `iis.access`, `nginx.access`, `apache.access` (each only yields when that stack exists). Walkfs: per-user **`Downloads`**, and **`%LocalAppData%\Microsoft\Windows\INetCache\Content.Outlook`** under `C:/Users`.
+
+**Linux** — `nginx.access`, `apache.access`, `caddy.access` (when those servers/logs are present), `wget.hsts`. Walkfs: **`/home/**/Downloads/**`**.
+
+**macOS** — `browser.history`, `browser.downloads`, `wget.hsts`. Walkfs: **`/Users/**/Downloads/**`**.
+
 ### Persistence and execution (`--pe`)
 
 **Windows** — functions include: `runkeys`, `services`, `tasks`, `userassist`, `appinit`, `bootshell`, `alternateshell`, `winlogon`, `startupinfo`, `shimcache`, `amcache`, `muicache`, `prefetch`, `evtx` (filtered to Security-Auditing 4688 process creation), `powershell_history`, `usnjrnl`, `defender.quarantine`, `msoffice.startup`, `msoffice.native`, `msoffice.web`. Walkfs: `C:/Windows/System32/Tasks`, All Users Startup, `C:/Windows/Prefetch` (`*.pf`). Scenario: Run key commands containing PowerShell.
@@ -155,14 +165,6 @@ Below is what the **shipped TOML** wires up. Exact availability depends on the i
 **Linux** — `commandhistory`; walkfs: `/tmp/**`.
 
 **macOS** — `commandhistory`.
-
-### Initial access (`--ia`)
-
-**Windows** — `browser.history`, `browser.downloads`, `activitiescache` (Timeline / multi-app activity), `mru.opensave` (Open/Save dialog MRU for non-browser apps), `mru.run` (RunMRU / Win+R history; clickfix-relevant), `ual.client_access` (UAL inbound client / server-role access), `wget.hsts` (wget HSTS cache when present), unified web access logs: `iis.access`, `nginx.access`, `apache.access` (each only yields when that stack exists). Walkfs: per-user **`Downloads`**, and **`%LocalAppData%\Microsoft\Windows\INetCache\Content.Outlook`** under `C:/Users`.
-
-**Linux** — `nginx.access`, `apache.access`, `caddy.access` (when those servers/logs are present), `wget.hsts`. Walkfs: **`/home/**/Downloads/**`**.
-
-**macOS** — `browser.history`, `browser.downloads`, `wget.hsts`. Walkfs: **`/Users/**/Downloads/**`**.
 
 ## Output shape
 
