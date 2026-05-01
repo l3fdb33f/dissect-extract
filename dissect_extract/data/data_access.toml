@@ -75,6 +75,252 @@ path_glob = "**/*"
 description = "macOS Recent Items path: {path}"
 timestamp_field = "mtime"
 
+
+# Dissectify macOS plugins (`macos.*` namespace) — data access
+[macos.functions."macos.knowledgec.app_usage"]
+description = "macOS KnowledgeC app usage (Dissectify): {bundle_id} ({source})"
+timestamp_field = "ts_start"
+
+[macos.functions."macos.knowledgec.web_usage"]
+description = "macOS KnowledgeC web usage (Dissectify): {web_domain} ({source})"
+timestamp_field = "ts_start"
+
+[macos.functions."macos.knowledgec.media_usage"]
+description = "macOS KnowledgeC media (Dissectify): {now_playing_artist} — {now_playing_album} ({source})"
+timestamp_field = "ts_start"
+
+[macos.functions."macos.knowledgec.notifications"]
+description = "macOS KnowledgeC notification (Dissectify): {bundle_id} ({source})"
+timestamp_field = "ts_start"
+
+[macos.functions."macos.knowledgec.intents"]
+description = "macOS KnowledgeC intent (Dissectify): {intent_class} — {intent_verb} ({source})"
+timestamp_field = "ts_start"
+
+[macos.functions."macos.knowledgec.display"]
+description = "macOS KnowledgeC display (Dissectify): backlit={is_backlit} ({source})"
+timestamp_field = "ts_start"
+
+[macos.functions."macos.knowledgec.bluetooth"]
+description = "macOS KnowledgeC Bluetooth (Dissectify): {device_name} ({device_type}, {source})"
+timestamp_field = "ts_start"
+
+[macos.functions."macos.knowledgec.discoverability"]
+description = "macOS KnowledgeC discoverability (Dissectify): signal={signal} ({source})"
+timestamp_field = "ts_start"
+
+[macos.functions."macos.knowledgec.sync_peers"]
+description = "macOS KnowledgeC sync peer (Dissectify): {device_model} ({device_id}, {source})"
+timestamp_field = "ts_last_seen"
+
+[macos.functions."macos.knowledgec.sources"]
+description = "macOS KnowledgeC source (Dissectify): {bundle_id} ({source})"
+
+[macos.functions."macos.knowledgec.histograms"]
+description = "macOS KnowledgeC histogram (Dissectify): {histogram_id} = {bucket_value} ({source})"
+
+[macos.functions."macos.knowledgec.custom_metadata"]
+description = "macOS KnowledgeC metadata (Dissectify): {name} = {string_value} ({source})"
+
+[macos.functions."macos.biome.activity_level"]
+description = "macOS Dissectify `biome.activity_level`: {source}"
+
+[macos.functions."macos.biome.all"]
+description = "macOS Dissectify `biome.all`: {source}"
+
+[macos.functions."macos.biome.app_activity"]
+description = "macOS Dissectify `biome.app_activity`: {source}"
+
+[macos.functions."macos.biome.app_in_focus"]
+description = "macOS Dissectify `biome.app_in_focus`: {source}"
+
+[macos.functions."macos.biome.app_intents"]
+description = "macOS Dissectify `biome.app_intents`: {source}"
+
+[macos.functions."macos.biome.now_playing"]
+description = "macOS Dissectify `biome.now_playing`: {source}"
+
+[macos.functions."macos.biome.media_usage"]
+description = "macOS Dissectify `biome.media_usage`: {source}"
+
+[macos.functions."macos.biome.screentime"]
+description = "macOS Dissectify `biome.screentime`: {source}"
+
+[macos.functions."macos.biome.user_focus"]
+description = "macOS Dissectify `biome.user_focus`: {source}"
+
+[macos.functions."macos.biome.user_focus_computed"]
+description = "macOS Dissectify `biome.user_focus_computed`: {source}"
+
+[macos.functions."macos.biome.display"]
+description = "macOS Dissectify `biome.display`: {source}"
+
+[macos.functions."macos.biome.notifications"]
+description = "macOS Dissectify `biome.notifications`: {source}"
+
+[macos.functions."macos.biome.third_party_apps"]
+description = "macOS Dissectify `biome.third_party_apps`: {source}"
+
+[macos.functions."macos.biome.messages_read"]
+description = "macOS Dissectify `biome.messages_read`: {source}"
+
+[macos.functions."macos.biome.siri_execution"]
+description = "macOS Dissectify `biome.siri_execution`: {source}"
+
+[macos.functions."macos.biome.carplay"]
+description = "macOS Dissectify `biome.carplay`: {source}"
+
+[macos.functions."macos.biome.location"]
+description = "macOS Dissectify `biome.location`: {source}"
+
+[macos.functions."macos.biome.streams"]
+description = "macOS Dissectify `biome.streams`: {source}"
+
+[macos.functions."macos.biome.low_power_mode"]
+description = "macOS Dissectify `biome.low_power_mode`: {source}"
+
+[macos.functions."macos.biome.dk_low_power"]
+description = "macOS Dissectify `biome.dk_low_power`: {source}"
+
+[macos.functions."macos.biome.bluetooth"]
+description = "macOS Dissectify `biome.bluetooth`: {source}"
+
+[macos.functions."macos.screentime.usage"]
+description = "macOS Screen Time usage (Dissectify): {bundle_id} — {total_time}s ({source})"
+
+[macos.functions."macos.screentime.blocks"]
+description = "macOS Screen Time block (Dissectify): {block_type} ({source})"
+timestamp_field = "start_date"
+
+[macos.functions."macos.officemru.entries"]
+description = "macOS Office MRU (Dissectify): {application} — {document_url} ({source})"
+timestamp_field = "mtime"
+
+[macos.functions."macos.sharedfilelist.favorites"]
+description = "macOS shared file list favorite (Dissectify): {path} ({source})"
+
+[macos.functions."macos.sharedfilelist.recent_docs"]
+description = "macOS recent document (Dissectify): {path} ({source})"
+
+[macos.functions."macos.sharedfilelist.recent_apps"]
+description = "macOS recent app (Dissectify): {path} ({source})"
+
+[macos.functions."macos.sharedfilelist.projects"]
+description = "macOS recent project (Dissectify): {path} ({source})"
+
+[macos.functions."macos.sharedfilelist.volumes"]
+description = "macOS sidebar volume (Dissectify): {path} ({source})"
+
+[macos.functions."macos.quicklook.thumbnails"]
+description = "macOS Quick Look thumbnail (Dissectify): {path} ({source})"
+timestamp_field = "ts"
+
+[macos.functions."macos.docrevisions.generations"]
+description = "macOS document revision (Dissectify): {path} ({source})"
+
+[macos.functions."macos.docrevisions.files"]
+description = "macOS document revision file (Dissectify): {path} ({source})"
+
+[macos.functions."macos.dsstore.files"]
+description = "macOS .DS_Store file (Dissectify): {directory} ({source})"
+
+[macos.functions."macos.dsstore.entries"]
+description = "macOS .DS_Store entry (Dissectify): {filename} — {attribute} ({source})"
+
+[macos.functions."macos.fsevents.events"]
+description = "macOS FSEvents (Dissectify): {path} — {flags_description} ({source})"
+
+[macos.functions."macos.trash.files"]
+description = "macOS Trash item (Dissectify): {filename} — {trash_location} ({source})"
+timestamp_field = "mtime"
+
+[macos.functions."macos.trash.icloud"]
+description = "macOS iCloud Trash (Dissectify): {filename} ({source})"
+timestamp_field = "mtime"
+
+[macos.functions."macos.savedstate.entries"]
+description = "macOS saved app state (Dissectify): {bundle_id} ({source})"
+
+[macos.functions."macos.terminalstate.files"]
+description = "macOS Terminal state (Dissectify): {filename} ({source})"
+
+[macos.functions."macos.notes.entries"]
+description = "macOS Notes (Dissectify): {title} ({folder}, {source})"
+timestamp_field = "mtime"
+
+[macos.functions."macos.notes.attachments"]
+description = "macOS Notes attachment (Dissectify): {filename} ({source})"
+
+[macos.functions."macos.imessage.messages"]
+description = "macOS iMessage (Dissectify): {text} ({source})"
+timestamp_field = "ts"
+
+[macos.functions."macos.imessage.attachments"]
+description = "macOS iMessage attachment (Dissectify): {filename} ({source})"
+
+[macos.functions."macos.notifications.entries"]
+description = "macOS notification (Dissectify): {bundle_id} — {style} ({source})"
+timestamp_field = "ts_delivered"
+
+[macos.functions."macos.addressbook.contacts"]
+description = "macOS Contacts (Dissectify): {first_name} {last_name} ({organization}, {source})"
+
+[macos.functions."macos.addressbook.emails"]
+description = "macOS contact email (Dissectify): {address} ({source})"
+
+[macos.functions."macos.addressbook.phones"]
+description = "macOS contact phone (Dissectify): {full_number} ({label}, {source})"
+
+[macos.functions."macos.powerlogs.app_usage"]
+description = "macOS Powerlog app (Dissectify): {bundle_id} ({source})"
+timestamp_field = "ts"
+
+[macos.functions."macos.powerlogs.network"]
+description = "macOS Powerlog network (Dissectify): {interface} — in {bytes_in} / out {bytes_out} ({source})"
+timestamp_field = "ts"
+
+[macos.functions."macos.powerlogs.sleep_wake"]
+description = "macOS Powerlog sleep/wake (Dissectify): {event} ({source})"
+timestamp_field = "ts"
+
+[macos.functions."macos.wallet.passes"]
+description = "macOS Wallet pass (Dissectify): {pass_type} ({source})"
+
+[macos.functions."macos.wallet.pass_details"]
+description = "macOS Wallet pass detail (Dissectify): {organization} — {field_label}={field_value} ({source})"
+
+[macos.functions."macos.wallet.transactions"]
+description = "macOS Wallet transaction (Dissectify): {amount} {currency_code} ({source})"
+
+[macos.functions."macos.wallet.payment_cards"]
+description = "macOS Wallet payment card (Dissectify): {display_name} — {payment_type} ({source})"
+
+[macos.functions."macos.wallet.pass_types"]
+description = "macOS Wallet pass type (Dissectify): {identifier} ({team_identifier}, {source})"
+
+[macos.functions."macos.icloudfiles.files"]
+description = "macOS iCloud Drive file (Dissectify): {path} — {size} bytes ({source})"
+
+[macos.functions."macos.idevicebackup.info"]
+description = "macOS iOS backup info (Dissectify): {device_name} ({source})"
+
+[macos.functions."macos.idevicebackup.files"]
+description = "macOS iOS backup file (Dissectify): {path} ({file_domain}, {source})"
+timestamp_field = "modified"
+
+[macos.functions."macos.crashreporter.entries"]
+description = "macOS CrashReporter (Dissectify): {app_name} ({bundle_id}, {source})"
+
+[macos.functions."macos.crashreporter.events"]
+description = "macOS CrashReporter event (Dissectify): {app_name} — {event_type} ({source})"
+timestamp_field = "ts"
+
+[macos.functions."macos.logs.list"]
+description = "macOS log file inventory (Dissectify): {log_dir}/{log_file} — {size_bytes}b ({source})"
+
+[macos.functions."macos.logs.all_raw"]
+description = "macOS raw log line (Dissectify): {log_file}:{line_number} ({source})"
+
 [unix.functions.commandhistory]
 description = "Shell history: {command}"
 timestamp_field = "ts"
@@ -87,4 +333,106 @@ timestamp_field = "mtime"
 
 [bsd.functions.commandhistory]
 description = "Shell history: {command}"
+timestamp_field = "ts"
+
+
+# RegRipper plugins (regripper.* namespace) — user activity / data access
+[windows.functions."regripper.adobe"]
+description = "Adobe Reader/Acrobat MRU (recent PDF): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.appassoc"]
+description = "User application association (file-type handler): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.applets"]
+description = "Microsoft Applets MRU (Paint/RegEdit/WordPad/MMC): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.comdlg32"]
+description = "ComDlg32 LastVisited / OpenSavePidlMRU (per-user dialog history): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.featureusage"]
+description = "Win10 FeatureUsage per-app/window activity counter: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.jumplistdata"]
+description = "JumplistData per-user entry: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.lastloggedon"]
+description = "LogonUI LastLoggedOnUser: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.mmc"]
+description = "MMC Recent File List: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.mpmru"]
+description = "Windows Media Player Recent Files MRU: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.msoffice"]
+description = "Microsoft Office user MRU (Office 2007+): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.onedrive"]
+description = "OneDrive account / personal folder path: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.profilelist"]
+description = "ProfileList user SID / home directory: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.recentapps"]
+description = "Win10 Search RecentApps (per-app launch counter / time): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.searchscopes"]
+description = "IE Search Scopes (browser hijacker indicator): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.sevenzip"]
+description = "7-Zip recent archive/extract MRU: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.shellfolders"]
+description = "User Shell Folder path (Documents/Desktop/Startup/etc.): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.shutdown"]
+description = "Last system shutdown timestamp: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.srum"]
+description = "SRUM extension key entry: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.sysinternals"]
+description = "Sysinternals tool EulaAccepted marker (tool usage indicator): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.systemindex"]
+description = "Windows Search SystemIndex excluded path / crawl scope: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.typedpaths"]
+description = "Explorer typed path (NTUSER): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.typedurlstime"]
+description = "IE TypedURLs timestamp: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.winrar"]
+description = "WinRAR ArcHistory / DialogEdit history: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.winzip"]
+description = "WinZip extract MRU: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.wordwheelquery"]
+description = "Explorer Search WordWheelQuery history: {value} (name {name}, key {key})"
 timestamp_field = "ts"

@@ -115,6 +115,16 @@ def main(argv: list[str] | None = None) -> int:
         metavar="DIR",
         help="Write raw applicable plugin records as JSONL (one file per target under DIR; same filters as timeline)",
     )
+    parser.add_argument(
+        "--plugin-path",
+        action="append",
+        type=Path,
+        metavar="DIR",
+        help=(
+            "Extra dissect.target plugin directory or .py file (repeatable); "
+            "see dissect_extract/target_plugins/ and DISSECT_PLUGINS"
+        ),
+    )
     kw = parser.add_argument_group("keyword filter (optional; substring, case-insensitive)")
     kw.add_argument(
         "-kl",
@@ -181,6 +191,8 @@ def main(argv: list[str] | None = None) -> int:
     if dump_root is not None:
         dump_root.mkdir(parents=True, exist_ok=True)
 
+    extra_plugins = [p.expanduser() for p in (args.plugin_path or [])]
+
     def run_one(tpath: str) -> list[TimelineEvent]:
         dpath = (dump_root / _dump_jsonl_filename(tpath)) if dump_root is not None else None
         return collect_events_from_path(
@@ -189,6 +201,7 @@ def main(argv: list[str] | None = None) -> int:
             persistence_os_filter=persistence_os_filter,
             dump_jsonl_path=dpath,
             keyword_filter=keyword_filter,
+            plugin_paths=extra_plugins or None,
         )
 
     if max_workers <= 1:

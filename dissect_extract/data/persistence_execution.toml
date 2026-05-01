@@ -230,6 +230,135 @@ path_glob = "**/*.plist"
 description = "User LaunchAgents plist: {path}"
 timestamp_field = "mtime"
 
+
+# Dissectify macOS plugins (`macos.*` namespace) — persistence execution
+[macos.functions."macos.autostart.launch_agents"]
+description = "macOS LaunchAgent (Dissectify): {label} — {program} ({source})"
+
+[macos.functions."macos.autostart.launch_daemons"]
+description = "macOS LaunchDaemon (Dissectify): {label} — {program} ({source})"
+
+[macos.functions."macos.autostart.launch_items"]
+description = "macOS launchd item (Dissectify): {label} — {program} ({source})"
+
+[macos.functions."macos.autostart.system_extensions"]
+description = "macOS system extension (Dissectify): {identifier} — {state} ({source})"
+
+[macos.functions."macos.autostart.kernel_extensions"]
+description = "macOS kernel extension (Dissectify): {bundle_id} — {version} ({source})"
+
+[macos.functions."macos.autostart.cronjobs"]
+description = "macOS cron (Dissectify): {schedule} — {command} (user {user}, {source})"
+
+[macos.functions."macos.autostart.periodic"]
+description = "macOS periodic job (Dissectify): {name} — {period} ({source})"
+
+[macos.functions."macos.autostart.startup_items"]
+description = "macOS StartupItem (Dissectify): {name} — {item_location} ({source})"
+
+[macos.functions."macos.autostart.startup_files"]
+description = "macOS startup file (Dissectify): {filename} ({source})"
+
+[macos.functions."macos.kext.installed"]
+description = "macOS KEXT installed (Dissectify): {bundle_id} — {bundle_version} ({kext_location}, {source})"
+
+[macos.functions."macos.kext.load_history"]
+description = "macOS KEXT load history (Dissectify): {bundle_id} — last_seen {last_seen} ({source})"
+
+[macos.functions."macos.kext.system_extensions"]
+description = "macOS system extension (Dissectify): {identifier} ({source})"
+
+[macos.functions."macos.profiles.installed"]
+description = "macOS configuration profile (Dissectify): {display_name} — {identifier} ({source})"
+
+[macos.functions."macos.profiles.payloads"]
+description = "macOS profile payload (Dissectify): {payload_type} — {payload_identifier} ({source})"
+
+[macos.functions."macos.profiles.settings"]
+description = "macOS profile setting (Dissectify): {filename}::{key} = {value} ({source})"
+
+[macos.functions."macos.execpolicy.entries"]
+description = "macOS Gatekeeper/exec policy (Dissectify): {bundle_id} — signed_by {signing_id} ({source})"
+
+[macos.functions."macos.tcc.access"]
+description = "macOS TCC permission (Dissectify): {service} — {client} ({source})"
+timestamp_field = "ts"
+
+[macos.functions."macos.tcc.expired"]
+description = "macOS TCC expired consent (Dissectify): {service} — {client} ({source})"
+
+[macos.functions."macos.tcc.location_clients"]
+description = "macOS location client (Dissectify): {bundle_id} — authorized {authorized} ({source})"
+
+[macos.functions."macos.sudoers.entries"]
+description = "macOS sudoers (Dissectify): {rule} ({source})"
+
+[macos.functions."macos.sudolog.entries"]
+description = "macOS sudo lastrun (Dissectify): {username} ({source})"
+timestamp_field = "ts_last_sudo"
+
+[macos.functions."macos.firewall.pf_rules"]
+description = "macOS pf rule (Dissectify): {rule} ({source})"
+
+[macos.functions."macos.firewall.alf_config"]
+description = "macOS application firewall config (Dissectify): {setting} — {value} ({source})"
+
+[macos.functions."macos.firewall.alf_exceptions"]
+description = "macOS firewall exception (Dissectify): {path} ({source})"
+
+[macos.functions."macos.firewall.alf_services"]
+description = "macOS firewall service (Dissectify): {service_name} — state {state} ({source})"
+
+[macos.functions."macos.firewall.alf_apps"]
+description = "macOS firewall app rule (Dissectify): {path} ({source})"
+
+[macos.functions."macos.preferences.list"]
+description = "macOS preferences plist (Dissectify): {plist_name} ({source})"
+
+[macos.functions."macos.preferences.entries"]
+description = "macOS preference entry (Dissectify): {plist_name}::{key_path} — {value} ({source})"
+
+[macos.functions."macos.applications.installed"]
+description = "macOS installed application (Dissectify): {app_name} — {bundle_id} ({source})"
+
+[macos.functions."macos.launchpad.apps"]
+description = "macOS Launchpad app (Dissectify): {title} — {bundle_id} ({source})"
+
+[macos.functions."macos.spotlight.applist"]
+description = "macOS Spotlight app list (Dissectify): {display_name} — {path} ({source})"
+
+[macos.functions."macos.spotlightshortcuts.entries"]
+description = "macOS Spotlight shortcut (Dissectify): {display_name} ({source})"
+
+[macos.functions."macos.osinfo.version"]
+description = "macOS version info (Dissectify): {product_name} — {product_version} ({source})"
+
+[macos.functions."macos.osinfo.install_date"]
+description = "macOS install date (Dissectify): {ts_installed} ({source})"
+timestamp_field = "ts_installed"
+
+[macos.functions."macos.localtime.info"]
+description = "macOS local time settings (Dissectify): {timezone} ({source})"
+
+[macos.functions."macos.localusers.entries"]
+description = "macOS local user (Dissectify): {realname} ({uid}/{gid}, {home}, {shell}, {source})"
+
+[macos.functions."macos.accounts.entries"]
+description = "macOS Accounts DB account (Dissectify): {username} — {identifier} ({source})"
+
+[macos.functions."macos.accounts.properties"]
+description = "macOS account property (Dissectify): {key} — {value} ({source})"
+
+[macos.functions."macos.shellhistory.entries"]
+description = "macOS shell history (Dissectify): {command} ({source})"
+timestamp_field = "ts"
+
+[macos.functions."macos.etcfiles.entries"]
+description = "macOS /etc file line (Dissectify): {filename}:{line_number} ({source})"
+
+[macos.functions."macos.printjobs.entries"]
+description = "macOS print job line (Dissectify): {filename}:{line} ({source})"
+
 [unix.functions.commandhistory]
 description = "Shell command history (execution): {command}"
 timestamp_field = "ts"
@@ -268,4 +397,196 @@ timestamp_field = "ts"
 
 [bsd.functions."openssh.authorized_keys"]
 description = "authorized_keys entry: {comment} ({key_type}) — {path}"
+timestamp_field = "ts"
+
+
+# RegRipper plugins (regripper.* namespace) — persistence, execution & defense evasion
+# Records use the shared RegRipperRecord (fields: ts, plugin, category, key,
+# subkey, name, value, value_type, description). Plugins whose function is
+# already provided by dissect.target (runkeys, services, shimcache, userassist,
+# tasks, usb, etc.) are intentionally skipped — see DUPLICATES in regripper.py.
+
+[windows.functions."regripper.appcertdlls"]
+description = "AppCertDlls global DLL injection (T1546.009 persistence): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.appcompatflags"]
+description = "Per-app shim layers / RunAsAdmin (T1546.011 application shimming): {name}={value} (key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.apppaths"]
+description = "App Paths registered launch shortcut (persistence/execution): {name}={value} (key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.appspecific"]
+description = "AppSpecific accessibility services persistence (T1546): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.appkeys"]
+description = "AppKey keyboard-shortcut handler (rare execution vector): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.at"]
+description = "Legacy AT scheduled job (Schedule\\TaskCache\\Tree): subkey {subkey} (key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.baseline"]
+description = "Generic well-known autostart key dump: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.cmd_shell"]
+description = "cmd/exe/bat shell\\open\\command hijack (T1546.001): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.direct"]
+description = "DirectShow filter graph plug-in (potential persistence): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.drivers32"]
+description = "Drivers32 multimedia/codec driver (legacy persistence): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.execpolicy"]
+description = "PowerShell ExecutionPolicy setting: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.exefile"]
+description = "exefile shell\\open\\command hijack (T1546.001): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.fileless"]
+description = "Fileless persistence — large/binary value in autostart key: {name} (type {value_type}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.findexes"]
+description = "HKCR file extension shell\\open\\command hijack target: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.gpohist"]
+description = "Group Policy applied/history entry: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.heap"]
+description = "Image File Execution Options GlobalFlag/heap (T1546.012 indicator): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.imagefile"]
+description = "Image File Execution Options Debugger (T1546.012 silent debugger): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.injectdll64"]
+description = "Wow64 InjectDll64 DLL injection persistence: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.inprocserver"]
+description = "COM InprocServer32 path (CLSID hijack target): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.lxss"]
+description = "Windows Subsystem for Linux distribution: subkey {subkey} (key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.netsh"]
+description = "Netsh helper / Software\\Microsoft\\NetSh extension (T1546.007): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.powershellcore"]
+description = "PowerShell Core / 7 setting (HKCU): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.printdemon"]
+description = "Print Monitors entry (PrintDemon CVE-2020-1048 persistence): subkey {subkey} (key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.printmon"]
+description = "Print Providers entry (spooler-loaded DLL persistence): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.profiler"]
+description = "COR_PROFILER / .NET ETW profiler (T1574.012): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.pslogging"]
+description = "PowerShell ScriptBlockLogging / ModuleLogging / Transcription policy: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.psscript"]
+description = "PSReadline ConsoleHistory reference: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.runvirtual"]
+description = "App-V RunVirtual virtual application registration: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.schedagent"]
+description = "Task Scheduler service agent setting: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.scriptleturl"]
+description = "ScriptletURL (Squiblydoo / scriptlet COM hijack): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.securityproviders"]
+description = "SecurityProviders LSA persistence (T1547.005): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.shelloverlay"]
+description = "ShellIconOverlayIdentifiers persistence (T1546.005): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.svcdll"]
+description = "Service ServiceDll path (svchost-loaded DLL persistence): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.syscache"]
+description = "Syscache (legacy AppLocker cache) execution evidence: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.wbem"]
+description = "WBEM (WMI) configuration value: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.wsh_settings"]
+description = "Windows Script Host (WSH) setting (Enabled/Remote/Trust): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+# defense evasion / anti-forensics
+[windows.functions."regripper.backuprestore"]
+description = "FilesNotToBackup / FilesNotToSnapshot / KeysNotToRestore (T1564.009 evasion): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.disableeventlog"]
+description = "Eventlog service Start value (T1562.002 logging tampering): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.disablelastaccess"]
+description = "NtfsDisableLastAccessUpdate (timestomp-friendly setting): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.disablemru"]
+description = "NoRecentDocsHistory policy (suppresses Recent Docs): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.disableremotescm"]
+description = "DisableRemoteScmEndpoints (PsExec/SCM lateral hardening): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.disablesr"]
+description = "DisableSR — System Restore / VSS disabled (T1490 inhibit recovery): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.disableuserassist"]
+description = "UserAssist / NoLogSlowLink suppression policy (anti-forensics): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.rlo"]
+description = "RLO/RTLO character in autostart value (T1036.002 masquerading): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.sfc"]
+description = "SFCDisable / System File Checker policy (defense evasion): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.uacbypass"]
+description = "Known UAC bypass handler key (sdclt/eventvwr/fodhelper): {value} (name {name}, key {key})"
 timestamp_field = "ts"

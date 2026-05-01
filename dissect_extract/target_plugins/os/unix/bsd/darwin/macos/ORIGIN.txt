@@ -1,0 +1,6 @@
+macOS dissect plugins from Dissectify (upstream plugins/ directory).
+Source: https://github.com/MrJayTechie/Dissectify
+Imported at commit: b420bab8e2e5538a26971b930d3beb1b7d5cb503
+
+Each plugin uses __namespace__ = "macos.<name>" so functions are invoked as
+macos.<name>.<function> (e.g. macos.safari.history), avoiding clashes with core dissect.target plugins.

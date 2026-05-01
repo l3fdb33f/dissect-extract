@@ -89,6 +89,111 @@ timestamp_field = "ts_start"
 description = "wget HSTS entry (HTTPS host seen by wget — possible payload fetch / tool ingress): {host} (source {source})"
 timestamp_field = "ts_created"
 
+
+# Dissectify macOS plugins (`macos.*` namespace) — initial access
+[macos.functions."macos.safari.history"]
+description = "macOS Safari history (Dissectify): {url} — {title} ({source})"
+timestamp_field = "ts"
+
+[macos.functions."macos.safari.downloads"]
+description = "macOS Safari download (Dissectify): {url} → {download_path} ({source})"
+timestamp_field = "ts"
+
+[macos.functions."macos.safari.bookmarks"]
+description = "macOS Safari bookmark (Dissectify): {title} — {url} ({source})"
+
+[macos.functions."macos.chromium.history"]
+description = "macOS Chromium history (Dissectify): {url} — {title} ({source})"
+timestamp_field = "ts_last_visit"
+
+[macos.functions."macos.chromium.downloads"]
+description = "macOS Chromium download (Dissectify): {target_path} — {url} ({source})"
+timestamp_field = "ts_start"
+
+[macos.functions."macos.chromium.bookmarks"]
+description = "macOS Chromium bookmark (Dissectify): {url} — {title} ({source})"
+timestamp_field = "ts_added"
+
+[macos.functions."macos.chromium.searches"]
+description = "macOS Chromium search (Dissectify): {search_term} ({source})"
+timestamp_field = "ts_last_visit"
+
+[macos.functions."macos.chromium.cookies"]
+description = "macOS Chromium cookie (Dissectify): {host_key} — {name} ({source})"
+timestamp_field = "ts_last_access"
+
+[macos.functions."macos.firefox.history"]
+description = "macOS Firefox history (Dissectify): {url} — {title} ({source})"
+timestamp_field = "ts_last_visit"
+
+[macos.functions."macos.firefox.downloads"]
+description = "macOS Firefox download (Dissectify): {target_path} — {url} ({source})"
+timestamp_field = "ts_added"
+
+[macos.functions."macos.firefox.bookmarks"]
+description = "macOS Firefox bookmark (Dissectify): {url} — {title} ({source})"
+timestamp_field = "ts_added"
+
+[macos.functions."macos.firefox.searches"]
+description = "macOS Firefox search (Dissectify): {search_term} ({source})"
+timestamp_field = "ts_last_visit"
+
+[macos.functions."macos.firefox.cookies"]
+description = "macOS Firefox cookie (Dissectify): {host} — {name} ({source})"
+timestamp_field = "ts_last_accessed"
+
+[macos.functions."macos.firefox.formhistory"]
+description = "macOS Firefox form history (Dissectify): {field_name} — {value} ({source})"
+timestamp_field = "ts_last_used"
+
+[macos.functions."macos.cookies.entries"]
+description = "macOS binary Cookies.bin (Dissectify): {cookie_domain} — {cookie_name} ({source})"
+timestamp_field = "ts_created"
+
+[macos.functions."macos.biome.web_usage"]
+description = "macOS Dissectify `biome.web_usage`: {source}"
+
+[macos.functions."macos.biome.safari_navigations"]
+description = "macOS Dissectify `biome.safari_navigations`: {source}"
+
+[macos.functions."macos.biome.safari_page_load"]
+description = "macOS Dissectify `biome.safari_page_load`: {source}"
+
+[macos.functions."macos.biome.safari_history"]
+description = "macOS Dissectify `biome.safari_history`: {source}"
+
+[macos.functions."macos.biome.safari_pageview"]
+description = "macOS Dissectify `biome.safari_pageview`: {source}"
+
+[macos.functions."macos.biome.wifi"]
+description = "macOS Dissectify `biome.wifi`: {source}"
+
+[macos.functions."macos.biome.wifi_connections"]
+description = "macOS Dissectify `biome.wifi_connections`: {source}"
+
+[macos.functions."macos.dhcp.leases"]
+description = "macOS DHCP lease (Dissectify): {ssid} — {ip_address} (router {router_ip}, {source})"
+timestamp_field = "ts_lease_start"
+
+[macos.functions."macos.hostfile.entries"]
+description = "macOS hosts file line (Dissectify): {ip} {hostnames} ({source})"
+
+[macos.functions."macos.installhistory.entries"]
+description = "macOS install history (Dissectify): {display_name} — {display_version} ({source})"
+timestamp_field = "ts"
+
+[macos.functions."macos.softwareupdate.appstore_installs"]
+description = "macOS App Store install (Dissectify): {bundle_name} — {bundle_version} ({bundle_id}, {source})"
+timestamp_field = "ts"
+
+[macos.functions."macos.softwareupdate.appstore_updates"]
+description = "macOS App Store update (Dissectify): {bundle_id} (state {update_state}, {source})"
+timestamp_field = "install_date"
+
+[macos.functions."macos.softwareupdate.receipts"]
+description = "macOS installer receipt (Dissectify): {package_identifier} — {package_version} ({source})"
+timestamp_field = "install_date"
+
 [[macos.walkfs]]
 walkfs_path = "/Users"
 path_substring = "/Downloads/"

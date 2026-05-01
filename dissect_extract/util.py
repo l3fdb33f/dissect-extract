@@ -39,25 +39,58 @@ def record_mapping(rec: Any) -> dict[str, Any]:
     return {k: getattr(rec, k) for k in dir(rec) if not k.startswith("_")}
 
 
-def pick_timestamp(mapping: dict[str, Any], preferred: str | None) -> date | None:
-    """Return a calendar date or datetime from *mapping* (``datetime`` subclasses ``date``)."""
+_TS_FALLBACK_KEYS: tuple[str, ...] = (
+    "ts",
+    "mtime",
+    "btime",
+    "ctime",
+    "atime",
+    "target_mtime",
+    "lnk_mtime",
+    "regf_mtime",
+    "ts_mtime",
+    "ts_modified",
+    "ts_last_modified",
+    "ts_last_visit",
+    "ts_last_used",
+    "ts_last_accessed",
+    "ts_last_seen",
+    "ts_visit",
+    "ts_added",
+    "ts_created",
+    "ts_start",
+    "ts_end",
+    "ts_lease_start",
+    "ts_delivered",
+    "ts_request",
+    "ts_first_visit",
+    "ts_first_used",
+    "ts_password_changed",
+    "creation_date",
+    "install_date",
+    "release_date",
+    "ts_installed",
+    "modified",
+    "last_modified",
+    "time",
+)
 
-    if preferred and mapping.get(preferred):
-        v = mapping[preferred]
-        return v if isinstance(v, date) else None
-    for key in (
-        "ts",
-        "mtime",
-        "btime",
-        "ctime",
-        "atime",
-        "target_mtime",
-        "lnk_mtime",
-        "regf_mtime",
-        "ts_mtime",
-        "last_modified",
-        "time",
-    ):
+
+def pick_timestamp(mapping: dict[str, Any], preferred: str | None) -> date | None:
+    """Return a calendar date or datetime from *mapping* (``datetime`` subclasses ``date``).
+
+    If *preferred* is set but missing/non-date, fall through to common fallback keys so
+    timeline rows still get a timestamp when descriptors use plugin-specific names like
+    ``ts_start`` / ``ts_added`` / ``ts_last_visit``.
+    """
+
+    if preferred:
+        v = mapping.get(preferred)
+        if isinstance(v, date):
+            return v
+    for key in _TS_FALLBACK_KEYS:
+        if key == preferred:
+            continue
         v = mapping.get(key)
         if isinstance(v, date):
             return v
@@ -131,16 +164,16 @@ def match_scenario(
     fc = rules.get("field_contains") or {}
     for field, needle in fc.items():
         hay = format_record_value(mapping.get(field, ""))
-        if needle.lower() not in hay.lower():
+        if str(needle).lower() not in hay.lower():
             return False
     frx = rules.get("field_regex") or {}
     for field, pattern in frx.items():
-        if not re.search(pattern, format_record_value(mapping.get(field, ""))):
+        if not re.search(str(pattern), format_record_value(mapping.get(field, ""))):
             return False
     psub = rules.get("path_contains")
     if psub:
         p = format_record_value(mapping.get("path", ""))
-        if psub.lower() not in p.lower():
+        if str(psub).lower() not in p.lower():
             return False
     return True
 

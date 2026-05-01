@@ -262,6 +262,102 @@ path_glob = "**/*"
 description = "SSH server configuration: {path}"
 timestamp_field = "mtime"
 
+
+# Dissectify macOS plugins (`macos.*` namespace) — lateral movement
+[macos.functions."macos.ssh.known_hosts"]
+description = "macOS SSH known_hosts (Dissectify): {host} ({source})"
+
+[macos.functions."macos.ssh.config"]
+description = "macOS SSH config (Dissectify): {host} — {setting} = {value} ({source})"
+
+[macos.functions."macos.ard.config"]
+description = "macOS Apple Remote Desktop config (Dissectify): {setting} — {value} ({source})"
+
+[macos.functions."macos.ard.access"]
+description = "macOS ARD access (Dissectify): {entry} ({source})"
+
+[macos.functions."macos.screensharing.connections"]
+description = "macOS Screen Sharing connection (Dissectify): {display_name} from {remote_host} ({source})"
+
+[macos.functions."macos.msrdc.connections"]
+description = "macOS Microsoft RDC connection (Dissectify): {friendly_name} ({remote_host}, user {username}, {source})"
+
+[macos.functions."macos.wifiintelligence.wifi_events"]
+description = "macOS Wi‑Fi event (Dissectify): {behavior_type} ({source})"
+timestamp_field = "ts"
+
+[macos.functions."macos.wifiintelligence.person_interactions"]
+description = "macOS Wi‑Fi person interaction (Dissectify): {entity_identifier} via {communication_mechanism} ({source})"
+timestamp_field = "ts"
+
+[macos.functions."macos.wifiintelligence.entity_aliases"]
+description = "macOS Wi‑Fi entity alias (Dissectify): {alias} ({entity_type}, {source})"
+
+[macos.functions."macos.utmpx.entries"]
+description = "macOS utmpx session (Dissectify): {user} — {line} ({source})"
+timestamp_field = "ts"
+
+[macos.functions."macos.callhistory.calls"]
+description = "macOS call history (Dissectify): {address} — {call_type} ({source})"
+timestamp_field = "ts"
+
+[macos.functions."macos.facetime.links"]
+description = "macOS FaceTime link (Dissectify): {link_name} ({source})"
+timestamp_field = "ts_created"
+
+[macos.functions."macos.facetime.handles"]
+description = "macOS FaceTime handle (Dissectify): {handle_value} ({source})"
+
+[macos.functions."macos.imessage.chats"]
+description = "macOS iMessage chat (Dissectify): {chat_identifier} ({source})"
+
+[macos.functions."macos.biome.screen_sharing"]
+description = "macOS Biome screen sharing (Dissectify): ({source})"
+timestamp_field = "ts"
+
+[macos.functions."macos.interactions.entries"]
+description = "macOS interaction record (Dissectify): {bundle_id} — {direction} ({source})"
+timestamp_field = "ts_created"
+
+[macos.functions."macos.interactions.contacts"]
+description = "macOS interaction contact (Dissectify): {display_name} ({source})"
+
+[macos.functions."macos.sharepoints.entries"]
+description = "macOS share point (Dissectify): {name} ({source})"
+
+[macos.functions."macos.logs.system"]
+description = "macOS system log line (Dissectify): {message} ({log_file}, {source})"
+timestamp_field = "ts"
+
+[macos.functions."macos.logs.install"]
+description = "macOS install log line (Dissectify): {message} ({log_file}, {source})"
+timestamp_field = "ts"
+
+[macos.functions."macos.logs.user"]
+description = "macOS user log line (Dissectify): {line} ({log_file}, {source})"
+
+[macos.functions."macos.logs.asl"]
+description = "macOS ASL log (Dissectify): {message} ({source})"
+timestamp_field = "ts"
+
+[macos.functions."macos.logs.asl_system"]
+description = "macOS ASL system (Dissectify): {message} ({source})"
+timestamp_field = "ts"
+
+[macos.functions."macos.logs.asl_powermanagement"]
+description = "macOS ASL power (Dissectify): {message} ({source})"
+timestamp_field = "ts"
+
+[macos.functions."macos.logs.asl_diagnostics"]
+description = "macOS ASL diagnostics (Dissectify): {message} ({source})"
+timestamp_field = "ts"
+
+[macos.functions."macos.logs.audit_classes"]
+description = "macOS audit class (Dissectify): {name} ({source})"
+
+[macos.functions."macos.logs.audit_events"]
+description = "macOS audit event (Dissectify): {event_name} — {description} ({source})"
+
 [unix.functions."openssh.authorized_keys"]
 description = "SSH authorized_keys: {comment} — {path}"
 timestamp_field = "ts"
@@ -278,4 +374,66 @@ timestamp_field = "mtime"
 
 [bsd.functions."openssh.authorized_keys"]
 description = "SSH authorized_keys: {comment} — {path}"
+timestamp_field = "ts"
+
+
+# RegRipper plugins (regripper.* namespace) — lateral movement
+[windows.functions."regripper.compdesc"]
+description = "ComputerDescriptions MRU (recently accessed remote machine): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.dcom"]
+description = "DCOM permission / AppID class (lateral via DCOM): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.heidisql"]
+description = "HeidiSQL connection MRU (lateral DB access): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.ica_sessions"]
+description = "Citrix ICA session MRU (lateral RDP/ICA evidence): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.mndmru"]
+description = "Map Network Drive MRU (T1078 / lateral SMB usage): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.portproxy"]
+description = "netsh portproxy persistent rule (lateral pivot): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.putty"]
+description = "PuTTY saved session / SSH host key (lateral SSH usage): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.rdpport"]
+description = "RDP listening port / WinStation flag: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.remoteaccess"]
+description = "RAS / RemoteAccess service setting: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.shares"]
+description = "LanmanServer\\Shares / Shares\\Security entry: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.termcert"]
+description = "RDP self-signed certificate / listener: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.termserv"]
+description = "Terminal Server / Remote Desktop core configuration: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.tsclient"]
+description = "Terminal Server Client MRU (outbound RDP target history): {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.wc_shares"]
+description = "WorkstationCache resolved network share: {value} (name {name}, key {key})"
+timestamp_field = "ts"
+
+[windows.functions."regripper.winscp"]
+description = "WinSCP saved session (lateral SCP/SFTP): {value} (name {name}, key {key})"
 timestamp_field = "ts"

@@ -9,7 +9,7 @@ description = "Timeline extraction and labeling using dissect.target (Python API
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "dissect.target>=3.20",
+    "dissect.target>=3.25",
     "tomli>=2.0.1; python_version < '3.11'",
 ]
 
@@ -19,10 +19,13 @@ dissect-timeline = "dissect_extract.cli:main"
 [project.optional-dependencies]
 dev = ["ruff>=0.6"]
 yara = ["yara-python>=4.0"]
+# Pulls in every optional dissect.target parser (CIM/CLFS/LNK/Thumbcache/ETL/EXTFS/FFS/Squashfs/etc.).
+# Without these, the corresponding plugins are reported as load failures by dissect (harmless but noisy).
+full = ["dissect.target[full]>=3.25"]
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["dissect_extract*"]
 
 [tool.setuptools.package-data]
-dissect_extract = ["data/*.toml", "data/*.yar"]
+dissect_extract = ["data/*.toml", "data/*.yar", "target_plugins/**/*.py", "target_plugins/**/ORIGIN.txt"]

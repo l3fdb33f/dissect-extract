@@ -4,13 +4,15 @@ import importlib.resources
 import itertools
 import json
 import logging
-from collections.abc import Iterator
+import threading
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Any
 
 from dissect.target import Target
 from dissect.target.exceptions import PluginError, UnsupportedPluginError
+from dissect.target.plugin import get_external_module_paths, load_modules_from_paths
 
 try:
     from dissect.target.plugins.filesystem.yara import HAS_YARA as _DISSECT_HAS_YARA
@@ -33,6 +35,10 @@ from dissect_extract.util import (
 )
 
 log = logging.getLogger(__name__)
+
+_PROJECT_PLUGIN_ROOT = Path(__file__).resolve().parent / "target_plugins"
+_loaded_plugin_roots: set[str] = set()
+_plugin_load_lock = threading.Lock()
 
 LINUX_YARA_RULES = "linux_implant_yara.yar"
 YARA_LINUX_PERSISTENCE_FN = "yara:linux-persistence"
@@ -222,17 +228,25 @@ def _call_plugin_function(target: Target, name: str, kwargs: dict[str, Any] | No
     try:
         if not target.has_function(name):
             return None
-    except PluginError:
+    except Exception:
+        # has_function should swallow PluginError, but a broken plugin can still raise
+        # during lazy registration (e.g. transitive imports). Treat as "not available".
+        log.debug("has_function(%s) raised; treating as unavailable", name, exc_info=True)
         return None
     try:
         fn = getattr(target, name)
+    except Exception:
+        log.debug("getattr(target, %s) failed", name, exc_info=True)
+        return None
+    try:
         return fn(**kwargs)
     except UnsupportedPluginError:
         log.debug("Unsupported plugin for %s on this target", name, exc_info=True)
     except TypeError:
         try:
-            fn = getattr(target, name)
             return fn()
+        except UnsupportedPluginError:
+            log.debug("Unsupported plugin for %s on this target", name, exc_info=True)
         except Exception:
             log.debug("Could not call %s with kwargs %s", name, kwargs, exc_info=True)
     except Exception:
@@ -387,7 +401,34 @@ def collect_events(
     return events
 
 
-def open_target(path: str | Path) -> Target:
+def ensure_dissect_plugin_paths(*, extra: Sequence[Path] | None = None) -> None:
+    """Load plugins from ``DISSECT_PLUGINS``, bundled ``target_plugins/``, and optional *extra* paths.
+
+    Safe to call repeatedly (idempotent per resolved path) and from worker threads.
+    """
+
+    extras = list(extra) if extra else []
+    with _plugin_load_lock:
+        merged = get_external_module_paths([_PROJECT_PLUGIN_ROOT, *extras])
+        to_load: list[Path] = []
+        for raw in merged:
+            p = Path(raw).expanduser()
+            try:
+                p = p.resolve()
+            except OSError:
+                continue
+            if not p.exists():
+                continue
+            key = str(p)
+            if key not in _loaded_plugin_roots:
+                to_load.append(p)
+        if to_load:
+            load_modules_from_paths(to_load)
+            _loaded_plugin_roots.update(str(p) for p in to_load)
+
+
+def open_target(path: str | Path, *, plugin_paths: Sequence[Path] | None = None) -> Target:
+    ensure_dissect_plugin_paths(extra=plugin_paths)
     return Target.open(str(path))
 
 
@@ -426,15 +467,17 @@ def collect_events_from_path(
     persistence_os_filter: frozenset[str] | None = None,
     dump_jsonl_path: Path | str | None = None,
     keyword_filter: KeywordFilter | None = None,
+    plugin_paths: Sequence[Path] | None = None,
 ) -> list[TimelineEvent]:
     """Open *path* as a target, collect timeline events, and return (empty list on failure).
 
     Safe for use from worker threads: each call creates its own :class:`~dissect.target.Target`.
     When *dump_jsonl_path* is set, writes one JSON object per applicable record to that file.
     When *keyword_filter* is active, only records matching at least one keyword are included (timeline and dump).
+    Plugins are loaded from ``DISSECT_PLUGINS``, bundled ``target_plugins/``, and *plugin_paths* before opening.
     """
     try:
-        target = open_target(path)
+        target = open_target(path, plugin_paths=plugin_paths)
     except Exception:
         log.exception("Failed to open target %s", path)
         return []
