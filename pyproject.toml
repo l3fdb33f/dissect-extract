@@ -9,7 +9,7 @@ description = "Timeline extraction and labeling using dissect.target (Python API
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "dissect.target>=3.25",
+    "dissect.target[full]>=3.25",
     "tomli>=2.0.1; python_version < '3.11'",
 ]
 
