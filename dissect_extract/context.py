@@ -8,7 +8,7 @@ from typing import Any
 
 from dissect.target import Target
 
-from dissect_extract.util import format_record_value, to_jsonable
+from dissect_extract.util import format_record_value, safe_format, to_jsonable
 
 log = logging.getLogger(__name__)
 
@@ -82,44 +82,10 @@ DST_IP_FIELDS: tuple[str, ...] = (
 # Terminal Services / RDP: Param1 is typically the username on these events.
 _EVENTXML_USER_FIRST_IDS = frozenset({1149, 21, 22, 24, 25, 41, 131, 1024, 1102})
 
-_EVENT_ID_VERB: dict[int, str] = {
-    1149: "connected via RDP",
-    21: "connected via RDP",
-    22: "disconnected RDP session",
-    24: "disconnected RDP session",
-    25: "reconnected RDP session",
-    41: "disconnected RDP session",
-    131: "connected via RDP",
-    1024: "initiated outbound RDP",
-    1102: "initiated outbound RDP",
-    4624: "logged on",
-    4625: "failed logon",
-    4648: "logged on with explicit credentials",
-    4672: "logged on with elevated privileges",
-    4768: "requested Kerberos TGT",
-    4769: "requested Kerberos service ticket",
-    4776: "authenticated via NTLM",
-    4778: "reconnected RDP session",
-    4779: "disconnected RDP session",
-    5140: "accessed a network share",
-    4697: "installed a service",
-    7045: "installed a remote service",
-    7036: "changed service state",
-    5860: "used WMI",
-    5861: "used WMI",
-    6: "connected via WinRM",
-    91: "received WinRM connection",
-    4103: "ran PowerShell",
-    4104: "ran PowerShell",
-    400: "started PowerShell",
-    800: "ran PowerShell pipeline",
-}
-
 
 @dataclass(frozen=True)
 class EventContext:
     user: str | None = None
-    action: str | None = None
     source_ip: str | None = None
     dest_ip: str | None = None
 
@@ -338,67 +304,15 @@ def _extract_user(
     return None
 
 
-def _action_phrase(
-    mapping: dict[str, Any],
-    *,
-    category: str,
-    source_function: str,
-) -> str | None:
-    eid = _event_id(mapping)
-    if eid is not None and eid in _EVENT_ID_VERB:
-        return _EVENT_ID_VERB[eid]
-
-    provider = format_record_value(mapping.get("Provider_Name", "")).lower()
-    fn = source_function.lower()
-
-    if "terminalservices" in provider or "remotedesktop" in provider or "rdp" in provider:
-        return "connected via RDP"
-    if "winrm" in provider:
-        return "connected via WinRM"
-    if "powershell" in provider:
-        return "ran PowerShell"
-    if "security-auditing" in provider and eid == 5140:
-        return "accessed a network share"
-    if "wmi-activity" in provider:
-        return "used WMI"
-
-    if "regripper.tsclient" in fn or "rdpclient" in fn or "bitmap" in fn:
-        return "connected via RDP"
-    if "regripper.rdpport" in fn:
-        return "configured RDP"
-    if "ssh" in fn or "authorized_keys" in fn or "known_hosts" in fn:
-        return "used SSH"
-    if "wtmp" in fn or "btmp" in fn or "lastlog" in fn:
-        return "logged in"
-    if "evtx" in fn and category == "lateral-movement":
-        return "performed lateral movement activity"
-    if category == "data-access":
-        return "accessed data"
-    if category == "data-exfiltration":
-        return "used network"
-    if category == "initial-access":
-        return "accessed resource"
-    if category == "persistence-execution":
-        if mapping.get("command"):
-            return "ran command"
-        if mapping.get("yara_rule"):
-            return "matched persistence rule"
-        return "modified persistence"
-    if category == "lateral-movement":
-        return "performed remote activity"
-    return None
-
-
 def extract_event_context(
     mapping: dict[str, Any],
     *,
-    category: str,
-    source_function: str,
+    category: str = "",
+    source_function: str = "",
     sid_map: UserAccountMap,
     record: Any | None = None,
 ) -> EventContext:
     user = _extract_user(mapping, sid_map=sid_map, record=record)
-    action = _action_phrase(mapping, category=category, source_function=source_function)
 
     source_ip: str | None = None
     dest_ip: str | None = None
@@ -427,7 +341,7 @@ def extract_event_context(
         if len(extra_ips) > 1 and dest_ip is None:
             dest_ip = extra_ips[1]
 
-    return EventContext(user=user, action=action, source_ip=source_ip, dest_ip=dest_ip)
+    return EventContext(user=user, source_ip=source_ip, dest_ip=dest_ip)
 
 
 def _wants_network_detail(category: str, source_function: str) -> bool:
@@ -462,42 +376,42 @@ def _looks_like_username(value: str) -> bool:
     return True
 
 
-def enrich_description(
-    base: str,
+_DEFAULT_NARRATIVE_META = {
+    "narrative_user_action": "User {user} {action}",
+    "narrative_user_only": "User {user}",
+    "narrative_action_only": "{action}",
+}
+
+
+def format_narrative(
+    action: str | None,
     ctx: EventContext,
     *,
-    mapping: dict[str, Any] | None = None,
-    category: str = "",
-    source_function: str = "",
+    meta: dict[str, Any] | None = None,
+    fallback: str = "",
 ) -> str:
-    """Build a short narrative description instead of appending redundant tags."""
+    """Apply category TOML narrative templates to a resolved action and extracted context."""
 
-    action = ctx.action
-    if not action and mapping is not None:
-        action = _action_phrase(mapping, category=category, source_function=source_function)
+    templates = {**_DEFAULT_NARRATIVE_META, **(meta or {})}
+    act = (action or "").strip()
+    act_cap = act[0].upper() + act[1:] if act and act[0].islower() else act
 
-    if ctx.user and action:
-        text = f"User {ctx.user} {action}"
+    if ctx.user and act:
+        text = safe_format(
+            str(templates["narrative_user_action"]),
+            {"user": ctx.user, "action": act},
+        )
     elif ctx.user:
-        text = f"User {ctx.user}"
-    elif action:
-        text = action[0].upper() + action[1:] if action else action
+        text = safe_format(str(templates["narrative_user_only"]), {"user": ctx.user})
+    elif act:
+        text = safe_format(str(templates["narrative_action_only"]), {"action": act_cap})
     else:
-        text = _shorten_legacy_description(base)
+        text = fallback.strip()
 
     if ctx.source_ip:
         text = f"{text} from {ctx.source_ip}"
     if ctx.dest_ip and ctx.dest_ip != ctx.source_ip:
         text = f"{text} to {ctx.dest_ip}"
-    return text
-
-
-def _shorten_legacy_description(base: str) -> str:
-    """Drop trailing artifact path parentheticals from TOML templates."""
-
-    text = base.strip()
-    if text.endswith(")") and " (" in text:
-        text = text.rsplit(" (", 1)[0].strip()
     return text
 
 

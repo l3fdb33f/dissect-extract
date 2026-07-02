@@ -1,25 +1,30 @@
 # Artifacts tied to collection, staging, or exfiltration of data (not routine browser history/downloads).
 
+[meta]
+narrative_user_action = "User {user} {action}"
+narrative_user_only = "User {user}"
+narrative_action_only = "{action}"
+
 [windows.functions."browser.passwords"]
-description = "Browser saved credential (collection risk): {url}"
+action = "Browser saved credential (collection risk): {url}"
 timestamp_field = "ts_last_used"
 
 [windows.functions.powershell_history]
-description = "PowerShell history (may include archive / upload commands): {command}"
+action = "PowerShell history (may include archive / upload commands): {command}"
 timestamp_field = "mtime"
 
 [windows.functions.usnjrnl]
-description = "NTFS USN Journal with ARCHIVE reason (data staging / collection signal): {path} — {reason}"
+action = "NTFS USN Journal with ARCHIVE reason (data staging / collection signal): {path} — {reason}"
 timestamp_field = "ts"
 field_contains = { reason = "ARCHIVE" }
 
 [windows.functions."sru.network_data"]
-description = "SRUM network data (non-zero bytes — possible exfil / transfer): {app} — user {user}, bytes_sent {bytes_sent}, bytes_recvd {bytes_recvd}"
+action = "SRUM network data (non-zero bytes — possible exfil / transfer): {app} — user {user}, bytes_sent {bytes_sent}, bytes_recvd {bytes_recvd}"
 timestamp_field = "ts"
 any_field_nonzero = ["bytes_sent", "bytes_recvd"]
 
 [windows.functions."sru.application_timeline"]
-description = "SRUM application timeline (non-zero network_bytes_raw — possible network exfil): {app} — user {user}, network_bytes_raw {network_bytes_raw}"
+action = "SRUM application timeline (non-zero network_bytes_raw — possible network exfil): {app} — user {user}, network_bytes_raw {network_bytes_raw}"
 timestamp_field = "ts"
 any_field_nonzero = ["network_bytes_raw"]
 
@@ -27,158 +32,158 @@ any_field_nonzero = ["network_bytes_raw"]
 walkfs_path = "C:/Users"
 path_substring = "/Downloads/"
 path_glob = "**/*"
-description = "User Downloads folder object: {path}"
+action = "User Downloads folder object: {path}"
 timestamp_field = "mtime"
 
 [linux.functions.commandhistory]
-description = "Shell history (curl/wget/scp patterns possible): {command}"
+action = "Shell history (curl/wget/scp patterns possible): {command}"
 timestamp_field = "ts"
 
 
 # Dissectify macOS plugins (`macos.*` namespace) — data exfiltration
 [macos.functions."macos.shellhistory.entries"]
-description = "macOS shell history (Dissectify): {command} ({source})"
+action = "macOS shell history (Dissectify): {command} ({source})"
 timestamp_field = "ts"
 
 [macos.functions."macos.chromium.logins"]
-description = "macOS Chromium saved login (Dissectify): {origin_url} — {username} ({source})"
+action = "macOS Chromium saved login (Dissectify): {origin_url} — {username} ({source})"
 timestamp_field = "ts_last_used"
 
 [macos.functions."macos.firefox.logins"]
-description = "macOS Firefox saved login (Dissectify): {origin} (realm {http_realm}, {source})"
+action = "macOS Firefox saved login (Dissectify): {origin} (realm {http_realm}, {source})"
 timestamp_field = "ts_last_used"
 
 [macos.functions."macos.chromium.cookies"]
-description = "macOS Chromium cookie (Dissectify): {host_key} — {name} ({source})"
+action = "macOS Chromium cookie (Dissectify): {host_key} — {name} ({source})"
 timestamp_field = "ts_last_access"
 
 [macos.functions."macos.firefox.cookies"]
-description = "macOS Firefox cookie (Dissectify): {host} — {name} ({source})"
+action = "macOS Firefox cookie (Dissectify): {host} — {name} ({source})"
 timestamp_field = "ts_last_accessed"
 
 [macos.functions."macos.cookies.entries"]
-description = "macOS binary Cookies.bin (Dissectify): {cookie_domain} — {cookie_name} ({source})"
+action = "macOS binary Cookies.bin (Dissectify): {cookie_domain} — {cookie_name} ({source})"
 timestamp_field = "ts_created"
 
 [macos.functions."macos.keychain.generic"]
-description = "macOS Keychain generic secret (Dissectify): {service} — {account} ({source})"
+action = "macOS Keychain generic secret (Dissectify): {service} — {account} ({source})"
 
 [macos.functions."macos.keychain.internet"]
-description = "macOS Keychain internet password (Dissectify): {server} — {account} ({source})"
+action = "macOS Keychain internet password (Dissectify): {server} — {account} ({source})"
 
 [macos.functions."macos.keychain.certificates"]
-description = "macOS Keychain certificate (Dissectify): {label} ({keychain_name}, {source})"
+action = "macOS Keychain certificate (Dissectify): {label} ({keychain_name}, {source})"
 
 [macos.functions."macos.accounts.credentials"]
-description = "macOS account credential (Dissectify): {service_name} — {account_identifier} ({source})"
+action = "macOS account credential (Dissectify): {service_name} — {account_identifier} ({source})"
 
 [macos.functions."macos.biome.harvested_mail"]
-description = "macOS Biome harvested mail (Dissectify): ({source})"
+action = "macOS Biome harvested mail (Dissectify): ({source})"
 timestamp_field = "ts"
 
 [macos.functions."macos.biome.harvested_messages"]
-description = "macOS Biome harvested messages (Dissectify): ({source})"
+action = "macOS Biome harvested messages (Dissectify): ({source})"
 timestamp_field = "ts"
 
 [macos.functions."macos.biome.harvested_notes"]
-description = "macOS Biome harvested notes (Dissectify): ({source})"
+action = "macOS Biome harvested notes (Dissectify): ({source})"
 timestamp_field = "ts"
 
 [macos.functions."macos.biome.harvested_notifications"]
-description = "macOS Biome harvested notifications (Dissectify): ({source})"
+action = "macOS Biome harvested notifications (Dissectify): ({source})"
 timestamp_field = "ts"
 
 [macos.functions."macos.notes.attachments"]
-description = "macOS Notes attachment (Dissectify): {filename} ({source})"
+action = "macOS Notes attachment (Dissectify): {filename} ({source})"
 
 [macos.functions."macos.imessage.messages"]
-description = "macOS iMessage (Dissectify): {text} ({source})"
+action = "macOS iMessage (Dissectify): {text} ({source})"
 timestamp_field = "ts"
 
 [macos.functions."macos.imessage.attachments"]
-description = "macOS iMessage attachment (Dissectify): {filename} ({source})"
+action = "macOS iMessage attachment (Dissectify): {filename} ({source})"
 
 [macos.functions."macos.wallet.passes"]
-description = "macOS Wallet pass (Dissectify): {pass_type} ({source})"
+action = "macOS Wallet pass (Dissectify): {pass_type} ({source})"
 
 [macos.functions."macos.wallet.pass_details"]
-description = "macOS Wallet pass detail (Dissectify): {organization} — {field_label}={field_value} ({source})"
+action = "macOS Wallet pass detail (Dissectify): {organization} — {field_label}={field_value} ({source})"
 
 [macos.functions."macos.wallet.transactions"]
-description = "macOS Wallet transaction (Dissectify): {amount} {currency_code} ({source})"
+action = "macOS Wallet transaction (Dissectify): {amount} {currency_code} ({source})"
 
 [macos.functions."macos.wallet.payment_cards"]
-description = "macOS Wallet payment card (Dissectify): {display_name} — {payment_type} ({source})"
+action = "macOS Wallet payment card (Dissectify): {display_name} — {payment_type} ({source})"
 
 [macos.functions."macos.wallet.pass_types"]
-description = "macOS Wallet pass type (Dissectify): {identifier} ({team_identifier}, {source})"
+action = "macOS Wallet pass type (Dissectify): {identifier} ({team_identifier}, {source})"
 
 [macos.functions."macos.icloudfiles.files"]
-description = "macOS iCloud Drive file (Dissectify): {path} — {size} bytes ({source})"
+action = "macOS iCloud Drive file (Dissectify): {path} — {size} bytes ({source})"
 
 [macos.functions."macos.idevicebackup.files"]
-description = "macOS iOS backup file (Dissectify): {path} ({file_domain}, {source})"
+action = "macOS iOS backup file (Dissectify): {path} ({file_domain}, {source})"
 timestamp_field = "modified"
 
 [[macos.walkfs]]
 walkfs_path = "/tmp"
 path_glob = "**/*"
-description = "/tmp object (staging / exfil): {path}"
+action = "/tmp object (staging / exfil): {path}"
 timestamp_field = "mtime"
 
 [[macos.walkfs]]
 walkfs_path = "/var/tmp"
 path_glob = "**/*"
-description = "/var/tmp object (staging / exfil): {path}"
+action = "/var/tmp object (staging / exfil): {path}"
 timestamp_field = "mtime"
 
 [[macos.walkfs]]
 walkfs_path = "/Users"
 path_substring = "/Downloads/"
 path_glob = "**/*"
-description = "User Downloads (archives / staging): {path}"
+action = "User Downloads (archives / staging): {path}"
 timestamp_field = "mtime"
 
 [[linux.walkfs]]
 walkfs_path = "/tmp"
 path_glob = "**/*"
-description = "/tmp object (staging): {path}"
+action = "/tmp object (staging): {path}"
 timestamp_field = "mtime"
 
 [macos.functions.commandhistory]
-description = "Shell history: {command}"
+action = "Shell history: {command}"
 timestamp_field = "ts"
 
 
 # RegRipper plugins (regripper.* namespace) — removable media / device-based data exfiltration
 [windows.functions."regripper.bthport"]
-description = "Paired Bluetooth device / last-seen metadata (potential exfil channel): {value} (name {name}, key {key})"
+action = "Paired Bluetooth device / last-seen metadata (potential exfil channel): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.bthenum"]
-description = "Enumerated Bluetooth device (Enum\\BTHENUM): subkey {subkey} (key {key})"
+action = "Enumerated Bluetooth device (Enum\\BTHENUM): subkey {subkey} (key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.emdmgmt"]
-description = "EMDMgmt ReadyBoost / removable-media history: {value} (name {name}, key {key})"
+action = "EMDMgmt ReadyBoost / removable-media history: {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.mountdev"]
-description = "MountedDevices volume-to-drive-letter mapping (removable-media tracking): {value} (name {name}, key {key})"
+action = "MountedDevices volume-to-drive-letter mapping (removable-media tracking): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.mountdev2"]
-description = "MountPoints2 per-user mount point (removable-media usage): subkey {subkey} (key {key})"
+action = "MountPoints2 per-user mount point (removable-media usage): subkey {subkey} (key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.usbdevices"]
-description = "Enum\\USB / Enum\\USBSTOR device enumeration (data exfil to USB): {value} (name {name}, key {key})"
+action = "Enum\\USB / Enum\\USBSTOR device enumeration (data exfil to USB): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.volinfocache"]
-description = "Win10 mounted volume label cache (removable-media history): {value} (name {name}, key {key})"
+action = "Win10 mounted volume label cache (removable-media history): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.wpdbusenum"]
-description = "WPDBUSENUM portable device (USB MTP/PTP — phones / cameras): {value} (name {name}, key {key})"
+action = "WPDBUSENUM portable device (USB MTP/PTP — phones / cameras): {value} (name {name}, key {key})"
 timestamp_field = "ts"

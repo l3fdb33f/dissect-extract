@@ -1,439 +1,473 @@
 # Remote access, remote desktop, and trust artifacts.
 
+[meta]
+narrative_user_action = "User {user} {action}"
+narrative_user_only = "User {user}"
+narrative_action_only = "{action}"
+
 [[scenario]]
 os = "windows"
 function = "remoteaccess"
 field_contains = { message = "RDP" }
-description = "Remote access log mentions RDP: {message} ({source})"
+action = "used remote access (RDP)"
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4624$" }
-description = "Auth (lateral movement): Successful logon (4624). Look at LogonType for remote/network (Type 3) vs interactive/RDP (Type 10/3). ({source})"
+action = "logged on"
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4625$" }
-description = "Auth (lateral movement): Failed logon attempt (4625) — may indicate password spraying or invalid credential use. ({source})"
+action = "failed logon"
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4648$" }
-description = "Auth (lateral movement): Explicit credentials were used (4648) — often seen with remote tooling that supplies a username/password. ({source})"
+action = "logged on with explicit credentials"
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4672$" }
-description = "Privilege (lateral movement): Special privileges assigned to new logon (4672) — elevated/admin logon context. ({source})"
+action = "logged on with elevated privileges"
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4768$" }
-description = "Kerberos (DC): Ticket Granting Ticket issued (4768) — domain account authentication. ({source})"
+action = "requested Kerberos TGT"
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4769$" }
-description = "Kerberos (DC): Service ticket issued (4769) — authenticated access to a specific service/resource; useful for tracking pivots. ({source})"
+action = "requested Kerberos service ticket"
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4776$" }
-description = "NTLM auth (lateral movement): NTLM authentication (4776). On non-DC hosts this can indicate local-account auth or tool-driven authentication/downgrade. ({source})"
+action = "authenticated via NTLM"
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^5140$" }
-description = "SMB (lateral movement): Network share object accessed (5140) — common during remote execution and admin share use. ({source})"
+action = "accessed a network share"
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4778$" }
-description = "RDP/session: Session reconnected (4778). SessionName helps differentiate local Console vs remote RDP sessions. ({source})"
+action = "reconnected RDP session"
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4779$" }
-description = "RDP/session: Session disconnected (4779). SessionName helps differentiate local vs remote RDP. ({source})"
+action = "disconnected RDP session"
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Service Control Manager$", EventID = "^7045$" }
-description = "Remote exec (PsExec/sc pattern): New service installed (7045) — often indicates remote service creation used for execution/pivoting. ({source})"
+action = "installed a remote service"
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Service Control Manager$", EventID = "^7036$" }
-description = "Service state change (7036): Service started/stopped — can corroborate remote-service execution (e.g., PsExec service lifecycle). ({source})"
+action = "changed service state"
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4697$" }
-description = "Service install (Security): Service was installed (4697) — corroborates service-based remote execution. ({source})"
+action = "installed a service"
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-WMI-Activity$", EventID = "^(5860|5861)$" }
-description = "WMI activity (lateral movement/persistence): WMI-Activity operational events (5860/5861) — can indicate remote WMI execution or suspicious consumers/filters. ({source})"
+action = "used WMI"
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-WinRM$", EventID = "^6$" }
-description = "WinRM (lateral movement): WinRM connection initiated (Event 6) — indicates outbound remoting attempt from this host. ({source})"
+action = "connected via WinRM"
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-WinRM$", EventID = "^91$" }
-description = "WinRM (lateral movement): WinRM connection received (Event 91) — indicates inbound remoting/auth on this host. ({source})"
+action = "received WinRM connection"
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-PowerShell$", EventID = "^4103$" }
-description = "PowerShell remoting/execution: Module logging pipeline execution (4103) — can show remote vs local host context. ({source})"
+action = "ran PowerShell"
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-PowerShell$", EventID = "^4104$" }
-description = "PowerShell remoting/execution: Script Block Logging (4104) — de-obfuscated script blocks; high-signal for lateral movement tooling. ({source})"
+action = "ran PowerShell"
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Windows PowerShell$", EventID = "^400$" }
-description = "PowerShell session: Engine start / start of execution (400) — can reflect remote vs console host context. ({source})"
+action = "started PowerShell"
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Windows PowerShell$", EventID = "^800$" }
-description = "PowerShell pipeline: Pipeline execution details (800) — look for encoded (-enc) command lines and remote host context. ({source})"
+action = "ran PowerShell pipeline"
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
-field_regex = { Provider_Name = "(?i)^Microsoft-Windows-TerminalServices-LocalSessionManager$", EventID = "^(21|22|25|24|41)$" }
-description = "RDP (LSM Operational): Session lifecycle event (21/22/25/24/41) — can include initiating IP/username for inbound RDP sessions. ({source})"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-TerminalServices-LocalSessionManager$", EventID = "^21$" }
+action = "connected via RDP"
 timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-TerminalServices-LocalSessionManager$", EventID = "^22$" }
+action = "disconnected RDP session"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-TerminalServices-LocalSessionManager$", EventID = "^24$" }
+action = "disconnected RDP session"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-TerminalServices-LocalSessionManager$", EventID = "^25$" }
+action = "reconnected RDP session"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-TerminalServices-LocalSessionManager$", EventID = "^41$" }
+action = "disconnected RDP session"
+timestamp_field = "ts"
+
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-TerminalServices-RemoteConnectionManager$", EventID = "^1149$" }
-description = "RDP (RCM Operational): Remote Desktop authentication succeeded (1149) — includes initiating IP and user. ({source})"
+action = "connected via RDP"
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-RemoteDesktopServices-RdpCoreTS$", EventID = "^131$" }
-description = "RDP (RdpCoreTS Operational): RDP connection event (131) — can include initiating IP and user depending on configuration. ({source})"
+action = "connected via RDP"
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-TerminalServices-RDPClient$", EventID = "^(1024|1102)$" }
-description = "RDP client (outbound): RDPClient Operational connection record (1024/1102) — indicates this host initiated RDP to another system. ({source})"
+action = "logged on"
 timestamp_field = "ts"
 
 [windows.functions.remoteaccess]
-description = "Remote access tool log (TeamViewer, AnyDesk, etc.): {message} ({source})"
+action = "Remote access tool log (TeamViewer, AnyDesk, etc.): {message} ({source})"
 timestamp_field = "ts"
 
 [windows.functions."ual.client_access"]
-description = "User Access Log client access (incoming client / server role use): {authenticated_user} @ {client_name} ({address}) — {role_name} ({product_name}), access_count {access_count}"
+action = "User Access Log client access (incoming client / server role use): {authenticated_user} @ {client_name} ({address}) — {role_name} ({product_name}), access_count {access_count}"
 timestamp_field = "access_date"
 
 [windows.functions."rdpcache.paths"]
-description = "RDP client bitmap cache file (lateral movement artifact): {path}"
+action = "RDP client bitmap cache file (lateral movement artifact): {path}"
 timestamp_field = "mtime"
 
 [windows.functions."mru.mstsc"]
-description = "MSTSC MRU — recent RDP target: {value} (key {key})"
+action = "MSTSC MRU — recent RDP target: {value} (key {key})"
 timestamp_field = "regf_mtime"
 
 [windows.functions.evtx]
-description = "Event log lateral-movement signal: {Provider_Name} EventID {EventID} ({source})"
+action = "Event log lateral-movement signal: {Provider_Name} EventID {EventID} ({source})"
 timestamp_field = "ts"
 # Filtered to high-signal event IDs/providers from the Lateral Movement Analyst Reference.
 field_regex = { Provider_Name = "(?i)^(Microsoft-Windows-Security-Auditing|Service Control Manager|Microsoft-Windows-TerminalServices-LocalSessionManager|Microsoft-Windows-TerminalServices-RemoteConnectionManager|Microsoft-Windows-RemoteDesktopServices-RdpCoreTS|Microsoft-Windows-TerminalServices-RDPClient|Microsoft-Windows-WMI-Activity|Microsoft-Windows-WinRM|Microsoft-Windows-PowerShell|Windows PowerShell)$", EventID = "^(4624|4625|4648|4672|4768|4769|4776|5140|4778|4779|7045|7036|4697|5860|5861|6|91|4103|4104|400|800|21|22|24|25|41|1149|131|1024|1102)$" }
 
 [windows.functions."openssh.authorized_keys"]
-description = "authorized_keys on Windows host: {comment} — {path}"
+action = "authorized_keys on Windows host: {comment} — {path}"
 timestamp_field = "ts"
 
 [[windows.walkfs]]
 walkfs_path = "C:/Windows/System32/config/systemprofile/.ssh"
 path_glob = "**/*"
-description = "SYSTEM profile .ssh entry: {path}"
+action = "SYSTEM profile .ssh entry: {path}"
 timestamp_field = "mtime"
 
 [linux.functions."openssh.authorized_keys"]
-description = "SSH authorized_keys: {comment} — {path}"
+action = "SSH authorized_keys: {comment} — {path}"
 timestamp_field = "ts"
 
 [linux.functions."openssh.known_hosts"]
-description = "SSH known_hosts host entry: {host} — {path}"
+action = "SSH known_hosts host entry: {host} — {path}"
 timestamp_field = "mtime_ts"
 
 [linux.functions.remoteaccess]
-description = "Remote access log: {message} ({source})"
+action = "Remote access log: {message} ({source})"
 timestamp_field = "ts"
 
 [linux.functions.lastlog]
-description = "Last login (lastlog): user {ut_user} from {ut_host}"
+action = "Last login (lastlog): user {ut_user} from {ut_host}"
 timestamp_field = "ts"
 
 [linux.functions.wtmp]
-description = "Login/session event (wtmp): type {ut_type}, user {ut_user}, line {ut_line}, host {ut_host} ({ut_addr})"
+action = "Login/session event (wtmp): type {ut_type}, user {ut_user}, line {ut_line}, host {ut_host} ({ut_addr})"
 timestamp_field = "ts"
 
 [linux.functions.btmp]
-description = "Failed login attempt (btmp): type {ut_type}, user {ut_user}, line {ut_line}, host {ut_host} ({ut_addr})"
+action = "Failed login attempt (btmp): type {ut_type}, user {ut_user}, line {ut_line}, host {ut_host} ({ut_addr})"
 timestamp_field = "ts"
 
 [linux.functions.utmp]
-description = "Current login/session state (utmp): type {ut_type}, user {ut_user}, line {ut_line}, host {ut_host} ({ut_addr})"
+action = "Current login/session state (utmp): type {ut_type}, user {ut_user}, line {ut_line}, host {ut_host} ({ut_addr})"
 timestamp_field = "ts"
 
 [linux.functions.journal]
-description = "systemd journal (lateral movement / auth context): {comm} ({exe}) pid {pid} uid {uid} — {message} (unit {systemd_unit})"
+action = "systemd journal (lateral movement / auth context): {comm} ({exe}) pid {pid} uid {uid} — {message} (unit {systemd_unit})"
 timestamp_field = "ts"
 
 [[linux.walkfs]]
 walkfs_path = "/etc/ssh"
 path_glob = "**/*"
-description = "sshd configuration tree: {path}"
+action = "sshd configuration tree: {path}"
 timestamp_field = "mtime"
 
 [[linux.walkfs]]
 walkfs_path = "/home"
 path_substring = "/.ssh/"
 path_glob = "**/*"
-description = "User .ssh path: {path}"
+action = "User .ssh path: {path}"
 timestamp_field = "mtime"
 
 [macos.functions."openssh.authorized_keys"]
-description = "SSH authorized_keys: {comment} — {path}"
+action = "SSH authorized_keys: {comment} — {path}"
 timestamp_field = "ts"
 
 [[macos.walkfs]]
 walkfs_path = "/etc/ssh"
 path_glob = "**/*"
-description = "SSH server configuration: {path}"
+action = "SSH server configuration: {path}"
 timestamp_field = "mtime"
 
 
 # Dissectify macOS plugins (`macos.*` namespace) — lateral movement
 [macos.functions."macos.ssh.known_hosts"]
-description = "macOS SSH known_hosts (Dissectify): {host} ({source})"
+action = "macOS SSH known_hosts (Dissectify): {host} ({source})"
 
 [macos.functions."macos.ssh.config"]
-description = "macOS SSH config (Dissectify): {host} — {setting} = {value} ({source})"
+action = "macOS SSH config (Dissectify): {host} — {setting} = {value} ({source})"
 
 [macos.functions."macos.ard.config"]
-description = "macOS Apple Remote Desktop config (Dissectify): {setting} — {value} ({source})"
+action = "macOS Apple Remote Desktop config (Dissectify): {setting} — {value} ({source})"
 
 [macos.functions."macos.ard.access"]
-description = "macOS ARD access (Dissectify): {entry} ({source})"
+action = "macOS ARD access (Dissectify): {entry} ({source})"
 
 [macos.functions."macos.screensharing.connections"]
-description = "macOS Screen Sharing connection (Dissectify): {display_name} from {remote_host} ({source})"
+action = "macOS Screen Sharing connection (Dissectify): {display_name} from {remote_host} ({source})"
 
 [macos.functions."macos.msrdc.connections"]
-description = "macOS Microsoft RDC connection (Dissectify): {friendly_name} ({remote_host}, user {username}, {source})"
+action = "macOS Microsoft RDC connection (Dissectify): {friendly_name} ({remote_host}, user {username}, {source})"
 
 [macos.functions."macos.wifiintelligence.wifi_events"]
-description = "macOS Wi‑Fi event (Dissectify): {behavior_type} ({source})"
+action = "macOS Wi‑Fi event (Dissectify): {behavior_type} ({source})"
 timestamp_field = "ts"
 
 [macos.functions."macos.wifiintelligence.person_interactions"]
-description = "macOS Wi‑Fi person interaction (Dissectify): {entity_identifier} via {communication_mechanism} ({source})"
+action = "macOS Wi‑Fi person interaction (Dissectify): {entity_identifier} via {communication_mechanism} ({source})"
 timestamp_field = "ts"
 
 [macos.functions."macos.wifiintelligence.entity_aliases"]
-description = "macOS Wi‑Fi entity alias (Dissectify): {alias} ({entity_type}, {source})"
+action = "macOS Wi‑Fi entity alias (Dissectify): {alias} ({entity_type}, {source})"
 
 [macos.functions."macos.utmpx.entries"]
-description = "macOS utmpx session (Dissectify): {user} — {line} ({source})"
+action = "macOS utmpx session (Dissectify): {user} — {line} ({source})"
 timestamp_field = "ts"
 
 [macos.functions."macos.callhistory.calls"]
-description = "macOS call history (Dissectify): {address} — {call_type} ({source})"
+action = "macOS call history (Dissectify): {address} — {call_type} ({source})"
 timestamp_field = "ts"
 
 [macos.functions."macos.facetime.links"]
-description = "macOS FaceTime link (Dissectify): {link_name} ({source})"
+action = "macOS FaceTime link (Dissectify): {link_name} ({source})"
 timestamp_field = "ts_created"
 
 [macos.functions."macos.facetime.handles"]
-description = "macOS FaceTime handle (Dissectify): {handle_value} ({source})"
+action = "macOS FaceTime handle (Dissectify): {handle_value} ({source})"
 
 [macos.functions."macos.imessage.chats"]
-description = "macOS iMessage chat (Dissectify): {chat_identifier} ({source})"
+action = "macOS iMessage chat (Dissectify): {chat_identifier} ({source})"
 
 [macos.functions."macos.biome.screen_sharing"]
-description = "macOS Biome screen sharing (Dissectify): ({source})"
+action = "macOS Biome screen sharing (Dissectify): ({source})"
 timestamp_field = "ts"
 
 [macos.functions."macos.interactions.entries"]
-description = "macOS interaction record (Dissectify): {bundle_id} — {direction} ({source})"
+action = "macOS interaction record (Dissectify): {bundle_id} — {direction} ({source})"
 timestamp_field = "ts_created"
 
 [macos.functions."macos.interactions.contacts"]
-description = "macOS interaction contact (Dissectify): {display_name} ({source})"
+action = "macOS interaction contact (Dissectify): {display_name} ({source})"
 
 [macos.functions."macos.sharepoints.entries"]
-description = "macOS share point (Dissectify): {name} ({source})"
+action = "macOS share point (Dissectify): {name} ({source})"
 
 [macos.functions."macos.logs.system"]
-description = "macOS system log line (Dissectify): {message} ({log_file}, {source})"
+action = "macOS system log line (Dissectify): {message} ({log_file}, {source})"
 timestamp_field = "ts"
 
 [macos.functions."macos.logs.install"]
-description = "macOS install log line (Dissectify): {message} ({log_file}, {source})"
+action = "macOS install log line (Dissectify): {message} ({log_file}, {source})"
 timestamp_field = "ts"
 
 [macos.functions."macos.logs.user"]
-description = "macOS user log line (Dissectify): {line} ({log_file}, {source})"
+action = "macOS user log line (Dissectify): {line} ({log_file}, {source})"
 
 [macos.functions."macos.logs.asl"]
-description = "macOS ASL log (Dissectify): {message} ({source})"
+action = "macOS ASL log (Dissectify): {message} ({source})"
 timestamp_field = "ts"
 
 [macos.functions."macos.logs.asl_system"]
-description = "macOS ASL system (Dissectify): {message} ({source})"
+action = "macOS ASL system (Dissectify): {message} ({source})"
 timestamp_field = "ts"
 
 [macos.functions."macos.logs.asl_powermanagement"]
-description = "macOS ASL power (Dissectify): {message} ({source})"
+action = "macOS ASL power (Dissectify): {message} ({source})"
 timestamp_field = "ts"
 
 [macos.functions."macos.logs.asl_diagnostics"]
-description = "macOS ASL diagnostics (Dissectify): {message} ({source})"
+action = "macOS ASL diagnostics (Dissectify): {message} ({source})"
 timestamp_field = "ts"
 
 [macos.functions."macos.logs.audit_classes"]
-description = "macOS audit class (Dissectify): {name} ({source})"
+action = "macOS audit class (Dissectify): {name} ({source})"
 
 [macos.functions."macos.logs.audit_events"]
-description = "macOS audit event (Dissectify): {event_name} — {description} ({source})"
+action = "macOS audit event (Dissectify): {event_name} — {description} ({source})"
 
 [unix.functions."openssh.authorized_keys"]
-description = "SSH authorized_keys: {comment} — {path}"
+action = "SSH authorized_keys: {comment} — {path}"
 timestamp_field = "ts"
 
 [unix.functions."openssh.known_hosts"]
-description = "SSH known_hosts: {host} — {path}"
+action = "SSH known_hosts: {host} — {path}"
 timestamp_field = "mtime_ts"
 
 [[unix.walkfs]]
 walkfs_path = "/etc/ssh"
 path_glob = "**/*"
-description = "SSH server configuration: {path}"
+action = "SSH server configuration: {path}"
 timestamp_field = "mtime"
 
 [bsd.functions."openssh.authorized_keys"]
-description = "SSH authorized_keys: {comment} — {path}"
+action = "SSH authorized_keys: {comment} — {path}"
 timestamp_field = "ts"
 
 
 # RegRipper plugins (regripper.* namespace) — lateral movement
 [windows.functions."regripper.compdesc"]
-description = "ComputerDescriptions MRU (recently accessed remote machine): {value} (name {name}, key {key})"
+action = "ComputerDescriptions MRU (recently accessed remote machine): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.dcom"]
-description = "DCOM permission / AppID class (lateral via DCOM): {value} (name {name}, key {key})"
+action = "DCOM permission / AppID class (lateral via DCOM): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.heidisql"]
-description = "HeidiSQL connection MRU (lateral DB access): {value} (name {name}, key {key})"
+action = "HeidiSQL connection MRU (lateral DB access): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.ica_sessions"]
-description = "Citrix ICA session MRU (lateral RDP/ICA evidence): {value} (name {name}, key {key})"
+action = "Citrix ICA session MRU (lateral RDP/ICA evidence): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.mndmru"]
-description = "Map Network Drive MRU (T1078 / lateral SMB usage): {value} (name {name}, key {key})"
+action = "Map Network Drive MRU (T1078 / lateral SMB usage): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.portproxy"]
-description = "netsh portproxy persistent rule (lateral pivot): {value} (name {name}, key {key})"
+action = "netsh portproxy persistent rule (lateral pivot): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.putty"]
-description = "PuTTY saved session / SSH host key (lateral SSH usage): {value} (name {name}, key {key})"
+action = "PuTTY saved session / SSH host key (lateral SSH usage): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.rdpport"]
-description = "RDP listening port / WinStation flag: {value} (name {name}, key {key})"
+action = "RDP listening port / WinStation flag: {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.remoteaccess"]
-description = "RAS / RemoteAccess service setting: {value} (name {name}, key {key})"
+action = "RAS / RemoteAccess service setting: {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.shares"]
-description = "LanmanServer\\Shares / Shares\\Security entry: {value} (name {name}, key {key})"
+action = "LanmanServer\\Shares / Shares\\Security entry: {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.termcert"]
-description = "RDP self-signed certificate / listener: {value} (name {name}, key {key})"
+action = "RDP self-signed certificate / listener: {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.termserv"]
-description = "Terminal Server / Remote Desktop core configuration: {value} (name {name}, key {key})"
+action = "Terminal Server / Remote Desktop core configuration: {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.tsclient"]
-description = "Terminal Server Client MRU (outbound RDP target history): {value} (name {name}, key {key})"
+action = "Terminal Server Client MRU (outbound RDP target history): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.wc_shares"]
-description = "WorkstationCache resolved network share: {value} (name {name}, key {key})"
+action = "WorkstationCache resolved network share: {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.winscp"]
-description = "WinSCP saved session (lateral SCP/SFTP): {value} (name {name}, key {key})"
+action = "WinSCP saved session (lateral SCP/SFTP): {value} (name {name}, key {key})"
 timestamp_field = "ts"

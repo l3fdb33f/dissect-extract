@@ -1,202 +1,207 @@
 # Initial access: browser delivery, downloads, Run MRU (clickfix), UAL inbound clients, wget HSTS, Outlook INetCache, web server access logs.
 
+[meta]
+narrative_user_action = "User {user} {action}"
+narrative_user_only = "User {user}"
+narrative_action_only = "{action}"
+
 [windows.functions."browser.history"]
-description = "Browser history (initial access / delivery): {title} — {url}"
+action = "Browser history (initial access / delivery): {title} — {url}"
 timestamp_field = "ts"
 
 [windows.functions."browser.downloads"]
-description = "Browser download (initial access): {path} from {url}"
+action = "Browser download (initial access): {path} from {url}"
 timestamp_field = "ts_start"
 
 [windows.functions.activitiescache]
-description = "ActivitiesCache / Windows Timeline (non-browser and app activity): type {activity_type}, tag {tag} — {app_id} ({source})"
+action = "ActivitiesCache / Windows Timeline (non-browser and app activity): type {activity_type}, tag {tag} — {app_id} ({source})"
 timestamp_field = "start_time"
 
 [windows.functions."mru.opensave"]
-description = "Open/Save MRU (application file open-save dialogs): {value} (key {key})"
+action = "Open/Save MRU (application file open-save dialogs): {value} (key {key})"
 timestamp_field = "regf_mtime"
 
 [windows.functions."mru.run"]
-description = "Run dialog MRU executed: {value} (key {key})"
+action = "Run dialog MRU executed: {value} (key {key})"
 timestamp_field = "regf_mtime"
 
 [windows.functions."iis.access"]
-description = "IIS access log (web exploitation / initial access): {method} {uri} from {remote_ip} — status {status_code}, bytes_sent {bytes_sent} ({source})"
+action = "IIS access log (web exploitation / initial access): {method} {uri} from {remote_ip} — status {status_code}, bytes_sent {bytes_sent} ({source})"
 timestamp_field = "ts"
 
 [windows.functions."nginx.access"]
-description = "nginx access log (web initial access): {method} {uri} from {remote_ip} — status {status_code}, bytes_sent {bytes_sent} ({source})"
+action = "nginx access log (web initial access): {method} {uri} from {remote_ip} — status {status_code}, bytes_sent {bytes_sent} ({source})"
 timestamp_field = "ts"
 
 [windows.functions."apache.access"]
-description = "Apache httpd access log (web initial access): {method} {uri} from {remote_ip} — status {status_code}, bytes_sent {bytes_sent} ({source})"
+action = "Apache httpd access log (web initial access): {method} {uri} from {remote_ip} — status {status_code}, bytes_sent {bytes_sent} ({source})"
 timestamp_field = "ts"
 
 [windows.functions."ual.client_access"]
-description = "UAL client access (inbound connections / client usage against server roles — initial access): {authenticated_user} @ {client_name} ({address}) — {role_name} ({product_name}), access_count {access_count}"
+action = "UAL client access (inbound connections / client usage against server roles — initial access): {authenticated_user} @ {client_name} ({address}) — {role_name} ({product_name}), access_count {access_count}"
 timestamp_field = "access_date"
 
 [windows.functions."wget.hsts"]
-description = "wget HSTS entry (HTTPS host seen by wget — possible payload fetch / tool ingress): {host} (source {source})"
+action = "wget HSTS entry (HTTPS host seen by wget — possible payload fetch / tool ingress): {host} (source {source})"
 timestamp_field = "ts_created"
 
 [[windows.walkfs]]
 walkfs_path = "C:/Users"
 path_substring = "/Downloads/"
 path_glob = "**/*"
-description = "User Downloads folder (payload / staging): {path}"
+action = "User Downloads folder (payload / staging): {path}"
 timestamp_field = "mtime"
 
 [[windows.walkfs]]
 walkfs_path = "C:/Users"
 path_substring = "/AppData/Local/Microsoft/Windows/INetCache/Content.Outlook"
 path_glob = "**/*"
-description = "Outlook INetCache Content.Outlook (attachment / SafeTemp copies): {path}"
+action = "Outlook INetCache Content.Outlook (attachment / SafeTemp copies): {path}"
 timestamp_field = "mtime"
 
 [linux.functions."nginx.access"]
-description = "nginx access log (web initial access): {method} {uri} from {remote_ip} — status {status_code}, bytes_sent {bytes_sent} ({source})"
+action = "nginx access log (web initial access): {method} {uri} from {remote_ip} — status {status_code}, bytes_sent {bytes_sent} ({source})"
 timestamp_field = "ts"
 
 [linux.functions."apache.access"]
-description = "Apache httpd access log (web initial access): {method} {uri} from {remote_ip} — status {status_code}, bytes_sent {bytes_sent} ({source})"
+action = "Apache httpd access log (web initial access): {method} {uri} from {remote_ip} — status {status_code}, bytes_sent {bytes_sent} ({source})"
 timestamp_field = "ts"
 
 [linux.functions."caddy.access"]
-description = "Caddy access log (web initial access): {method} {uri} from {remote_ip} — status {status_code}, bytes_sent {bytes_sent} ({source})"
+action = "Caddy access log (web initial access): {method} {uri} from {remote_ip} — status {status_code}, bytes_sent {bytes_sent} ({source})"
 timestamp_field = "ts"
 
 [[linux.walkfs]]
 walkfs_path = "/home"
 path_substring = "/Downloads/"
 path_glob = "**/*"
-description = "User Downloads directory (payload / staging): {path}"
+action = "User Downloads directory (payload / staging): {path}"
 timestamp_field = "mtime"
 
 [linux.functions."wget.hsts"]
-description = "wget HSTS entry (HTTPS host seen by wget — possible payload fetch / tool ingress): {host} (source {source})"
+action = "wget HSTS entry (HTTPS host seen by wget — possible payload fetch / tool ingress): {host} (source {source})"
 timestamp_field = "ts_created"
 
 [macos.functions."browser.history"]
-description = "Browser history (initial access / delivery): {title} — {url}"
+action = "Browser history (initial access / delivery): {title} — {url}"
 timestamp_field = "ts"
 
 [macos.functions."browser.downloads"]
-description = "Browser download (initial access): {path} from {url}"
+action = "Browser download (initial access): {path} from {url}"
 timestamp_field = "ts_start"
 
 [macos.functions."wget.hsts"]
-description = "wget HSTS entry (HTTPS host seen by wget — possible payload fetch / tool ingress): {host} (source {source})"
+action = "wget HSTS entry (HTTPS host seen by wget — possible payload fetch / tool ingress): {host} (source {source})"
 timestamp_field = "ts_created"
 
 
 # Dissectify macOS plugins (`macos.*` namespace) — initial access
 [macos.functions."macos.safari.history"]
-description = "macOS Safari history (Dissectify): {url} — {title} ({source})"
+action = "macOS Safari history (Dissectify): {url} — {title} ({source})"
 timestamp_field = "ts"
 
 [macos.functions."macos.safari.downloads"]
-description = "macOS Safari download (Dissectify): {url} → {download_path} ({source})"
+action = "macOS Safari download (Dissectify): {url} → {download_path} ({source})"
 timestamp_field = "ts"
 
 [macos.functions."macos.safari.bookmarks"]
-description = "macOS Safari bookmark (Dissectify): {title} — {url} ({source})"
+action = "macOS Safari bookmark (Dissectify): {title} — {url} ({source})"
 
 [macos.functions."macos.chromium.history"]
-description = "macOS Chromium history (Dissectify): {url} — {title} ({source})"
+action = "macOS Chromium history (Dissectify): {url} — {title} ({source})"
 timestamp_field = "ts_last_visit"
 
 [macos.functions."macos.chromium.downloads"]
-description = "macOS Chromium download (Dissectify): {target_path} — {url} ({source})"
+action = "macOS Chromium download (Dissectify): {target_path} — {url} ({source})"
 timestamp_field = "ts_start"
 
 [macos.functions."macos.chromium.bookmarks"]
-description = "macOS Chromium bookmark (Dissectify): {url} — {title} ({source})"
+action = "macOS Chromium bookmark (Dissectify): {url} — {title} ({source})"
 timestamp_field = "ts_added"
 
 [macos.functions."macos.chromium.searches"]
-description = "macOS Chromium search (Dissectify): {search_term} ({source})"
+action = "macOS Chromium search (Dissectify): {search_term} ({source})"
 timestamp_field = "ts_last_visit"
 
 [macos.functions."macos.chromium.cookies"]
-description = "macOS Chromium cookie (Dissectify): {host_key} — {name} ({source})"
+action = "macOS Chromium cookie (Dissectify): {host_key} — {name} ({source})"
 timestamp_field = "ts_last_access"
 
 [macos.functions."macos.firefox.history"]
-description = "macOS Firefox history (Dissectify): {url} — {title} ({source})"
+action = "macOS Firefox history (Dissectify): {url} — {title} ({source})"
 timestamp_field = "ts_last_visit"
 
 [macos.functions."macos.firefox.downloads"]
-description = "macOS Firefox download (Dissectify): {target_path} — {url} ({source})"
+action = "macOS Firefox download (Dissectify): {target_path} — {url} ({source})"
 timestamp_field = "ts_added"
 
 [macos.functions."macos.firefox.bookmarks"]
-description = "macOS Firefox bookmark (Dissectify): {url} — {title} ({source})"
+action = "macOS Firefox bookmark (Dissectify): {url} — {title} ({source})"
 timestamp_field = "ts_added"
 
 [macos.functions."macos.firefox.searches"]
-description = "macOS Firefox search (Dissectify): {search_term} ({source})"
+action = "macOS Firefox search (Dissectify): {search_term} ({source})"
 timestamp_field = "ts_last_visit"
 
 [macos.functions."macos.firefox.cookies"]
-description = "macOS Firefox cookie (Dissectify): {host} — {name} ({source})"
+action = "macOS Firefox cookie (Dissectify): {host} — {name} ({source})"
 timestamp_field = "ts_last_accessed"
 
 [macos.functions."macos.firefox.formhistory"]
-description = "macOS Firefox form history (Dissectify): {field_name} — {value} ({source})"
+action = "macOS Firefox form history (Dissectify): {field_name} — {value} ({source})"
 timestamp_field = "ts_last_used"
 
 [macos.functions."macos.cookies.entries"]
-description = "macOS binary Cookies.bin (Dissectify): {cookie_domain} — {cookie_name} ({source})"
+action = "macOS binary Cookies.bin (Dissectify): {cookie_domain} — {cookie_name} ({source})"
 timestamp_field = "ts_created"
 
 [macos.functions."macos.biome.web_usage"]
-description = "macOS Dissectify `biome.web_usage`: {source}"
+action = "macOS Dissectify `biome.web_usage`: {source}"
 
 [macos.functions."macos.biome.safari_navigations"]
-description = "macOS Dissectify `biome.safari_navigations`: {source}"
+action = "macOS Dissectify `biome.safari_navigations`: {source}"
 
 [macos.functions."macos.biome.safari_page_load"]
-description = "macOS Dissectify `biome.safari_page_load`: {source}"
+action = "macOS Dissectify `biome.safari_page_load`: {source}"
 
 [macos.functions."macos.biome.safari_history"]
-description = "macOS Dissectify `biome.safari_history`: {source}"
+action = "macOS Dissectify `biome.safari_history`: {source}"
 
 [macos.functions."macos.biome.safari_pageview"]
-description = "macOS Dissectify `biome.safari_pageview`: {source}"
+action = "macOS Dissectify `biome.safari_pageview`: {source}"
 
 [macos.functions."macos.biome.wifi"]
-description = "macOS Dissectify `biome.wifi`: {source}"
+action = "macOS Dissectify `biome.wifi`: {source}"
 
 [macos.functions."macos.biome.wifi_connections"]
-description = "macOS Dissectify `biome.wifi_connections`: {source}"
+action = "macOS Dissectify `biome.wifi_connections`: {source}"
 
 [macos.functions."macos.dhcp.leases"]
-description = "macOS DHCP lease (Dissectify): {ssid} — {ip_address} (router {router_ip}, {source})"
+action = "macOS DHCP lease (Dissectify): {ssid} — {ip_address} (router {router_ip}, {source})"
 timestamp_field = "ts_lease_start"
 
 [macos.functions."macos.hostfile.entries"]
-description = "macOS hosts file line (Dissectify): {ip} {hostnames} ({source})"
+action = "macOS hosts file line (Dissectify): {ip} {hostnames} ({source})"
 
 [macos.functions."macos.installhistory.entries"]
-description = "macOS install history (Dissectify): {display_name} — {display_version} ({source})"
+action = "macOS install history (Dissectify): {display_name} — {display_version} ({source})"
 timestamp_field = "ts"
 
 [macos.functions."macos.softwareupdate.appstore_installs"]
-description = "macOS App Store install (Dissectify): {bundle_name} — {bundle_version} ({bundle_id}, {source})"
+action = "macOS App Store install (Dissectify): {bundle_name} — {bundle_version} ({bundle_id}, {source})"
 timestamp_field = "ts"
 
 [macos.functions."macos.softwareupdate.appstore_updates"]
-description = "macOS App Store update (Dissectify): {bundle_id} (state {update_state}, {source})"
+action = "macOS App Store update (Dissectify): {bundle_id} (state {update_state}, {source})"
 timestamp_field = "install_date"
 
 [macos.functions."macos.softwareupdate.receipts"]
-description = "macOS installer receipt (Dissectify): {package_identifier} — {package_version} ({source})"
+action = "macOS installer receipt (Dissectify): {package_identifier} — {package_version} ({source})"
 timestamp_field = "install_date"
 
 [[macos.walkfs]]
 walkfs_path = "/Users"
 path_substring = "/Downloads/"
 path_glob = "**/*"
-description = "User Downloads folder (payload / staging): {path}"
+action = "User Downloads folder (payload / staging): {path}"
 timestamp_field = "mtime"

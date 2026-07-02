@@ -1,402 +1,407 @@
 # Persistence & execution: plugin functions and walkfs roots per OS.
 # Placeholders use record fields from each dissect plugin (see dissect docs / target-query --list).
 
+[meta]
+narrative_user_action = "User {user} {action}"
+narrative_user_only = "User {user}"
+narrative_action_only = "{action}"
+
 [[scenario]]
 os = "windows"
 function = "runkeys"
 field_contains = { command = "powershell" }
-description = "Run key invokes PowerShell (persistence / execution): {command} (value {name}, key {key})"
+action = "ran PowerShell from a Run key"
 timestamp_field = "ts"
 
 [[scenario]]
 os = "linux"
 function = "services"
 field_contains = { name = ".timer" }
-description = "systemd timer unit (scheduled execution / persistence): {name} ({source})"
+action = "configured a systemd timer"
 timestamp_field = "ts"
 
 [windows.functions.runkeys]
-description = "Windows Run / RunOnce registry persistence: {command} (value {name}, key {key})"
+action = "Windows Run / RunOnce registry persistence: {command} (value {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions.services]
-description = "Windows service configuration (persistence): {name} — {displayname} (image {imagepath})"
+action = "Windows service configuration (persistence): {name} — {displayname} (image {imagepath})"
 timestamp_field = "ts"
 
 [windows.functions.tasks]
-description = "Scheduled Task (execution / persistence): {task_name} — {action} ({task_path})"
+action = "Scheduled Task (execution / persistence): {task_name} — {action} ({task_path})"
 timestamp_field = "date"
 
 [windows.functions.userassist]
-description = "UserAssist execution evidence: {path} (executions {number_of_executions}, focus_count {application_focus_count})"
+action = "UserAssist execution evidence: {path} (executions {number_of_executions}, focus_count {application_focus_count})"
 timestamp_field = "ts"
 
 [windows.functions.appinit]
-description = "AppInit_DLLs DLL load persistence: {path}"
+action = "AppInit_DLLs DLL load persistence: {path}"
 timestamp_field = "ts"
 
 [windows.functions.bootshell]
-description = "Winlogon Shell / alternate shell persistence: {path}"
+action = "Winlogon Shell / alternate shell persistence: {path}"
 timestamp_field = "ts"
 
 [windows.functions.alternateshell]
-description = "AlternateShell (Terminal Services) persistence: {path}"
+action = "AlternateShell (Terminal Services) persistence: {path}"
 timestamp_field = "ts"
 
 [windows.functions.winlogon]
-description = "Winlogon notification package / logon persistence: {value} (key {key})"
+action = "Winlogon notification package / logon persistence: {value} (key {key})"
 timestamp_field = "ts"
 
 [windows.functions.startupinfo]
-description = "Startup program metadata (Run key related): {name}"
+action = "Startup program metadata (Run key related): {name}"
 timestamp_field = "ts"
 
 [windows.functions.shimcache]
-description = "ShimCache (Amcache) program execution cache: {path}"
+action = "ShimCache (Amcache) program execution cache: {path}"
 timestamp_field = "ts"
 
 [windows.functions.amcache]
-description = "Amcache program execution artifact: {path}"
+action = "Amcache program execution artifact: {path}"
 timestamp_field = "ts"
 
 [windows.functions.muicache]
-description = "MUICache execution / GUI program evidence: {name}"
+action = "MUICache execution / GUI program evidence: {name}"
 timestamp_field = "ts"
 
 [windows.functions.prefetch]
-description = "Prefetch execution evidence: {path} (executable {executable})"
+action = "Prefetch execution evidence: {path} (executable {executable})"
 timestamp_field = "ts"
 
 [windows.functions.evtx]
-description = "Process execution (Security 4688): {NewProcessName} — cmdline {CommandLine} (parent {ParentProcessName})"
+action = "Process execution (Security 4688): {NewProcessName} — cmdline {CommandLine} (parent {ParentProcessName})"
 timestamp_field = "ts"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4688$" }
 
 [windows.functions.powershell_history]
-description = "PowerShell command history (execution): {command}"
+action = "PowerShell command history (execution): {command}"
 timestamp_field = "mtime"
 
 [windows.functions.usnjrnl]
-description = "NTFS USN Journal change record (often execution / file ops): {path} — reason {reason}"
+action = "NTFS USN Journal change record (often execution / file ops): {path} — reason {reason}"
 timestamp_field = "ts"
 
 [windows.functions."defender.quarantine"]
-description = "Microsoft Defender quarantine (threat / execution context): {detection_name} — {detection_type} (quarantine_id {quarantine_id}, scan_id {scan_id})"
+action = "Microsoft Defender quarantine (threat / execution context): {detection_name} — {detection_type} (quarantine_id {quarantine_id}, scan_id {scan_id})"
 timestamp_field = "ts"
 
 [windows.functions."msoffice.startup"]
-description = "Microsoft Office startup folder item (persistence): {path}"
+action = "Microsoft Office startup folder item (persistence): {path}"
 timestamp_field = "modification_time"
 
 [windows.functions."msoffice.native"]
-description = "Microsoft Office COM/VSTO add-in (persistence): {name} — {type}, load_behavior {load_behavior}, loaded {loaded}, manifest {manifest}"
+action = "Microsoft Office COM/VSTO add-in (persistence): {name} — {type}, load_behavior {load_behavior}, loaded {loaded}, manifest {manifest}"
 timestamp_field = "modification_time"
 
 [windows.functions."msoffice.web"]
-description = "Microsoft Office web add-in / WEF (persistence): {name} — {provider_name} v{version}, sources {source_locations}, manifest {manifest}"
+action = "Microsoft Office web add-in / WEF (persistence): {name} — {provider_name} v{version}, sources {source_locations}, manifest {manifest}"
 timestamp_field = "modification_time"
 
 [[windows.walkfs]]
 walkfs_path = "C:/Windows/System32/Tasks"
 path_glob = "**/*"
-description = "Scheduled Tasks on-disk artifact: {path}"
+action = "Scheduled Tasks on-disk artifact: {path}"
 timestamp_field = "mtime"
 
 [[windows.walkfs]]
 walkfs_path = "C:/ProgramData/Microsoft/Windows/Start Menu/Programs/Startup"
 path_glob = "**/*"
-description = "All Users Startup folder entry (persistence): {path}"
+action = "All Users Startup folder entry (persistence): {path}"
 timestamp_field = "mtime"
 
 [[windows.walkfs]]
 walkfs_path = "C:/Windows/Prefetch"
 path_glob = "*.pf"
-description = "Prefetch file (program execution artifact): {path}"
+action = "Prefetch file (program execution artifact): {path}"
 timestamp_field = "mtime"
 
 [linux.functions.cronjobs]
-description = "Cron job entry (persistence / scheduled execution): {command} (source {source})"
+action = "Cron job entry (persistence / scheduled execution): {command} (source {source})"
 timestamp_field = "ts"
 
 [linux.functions.services]
-description = "Service / systemd unit / init script (persistence): {name} ({type}) — {source}"
+action = "Service / systemd unit / init script (persistence): {name} ({type}) — {source}"
 timestamp_field = "ts"
 
 [linux.functions.journal]
-description = "systemd journal (execution / persistence context): {comm} ({exe}) pid {pid} uid {uid} — {message} (unit {systemd_unit})"
+action = "systemd journal (execution / persistence context): {comm} ({exe}) pid {pid} uid {uid} — {message} (unit {systemd_unit})"
 timestamp_field = "ts"
 
 [linux.functions.bashhistory]
-description = "Bash history command (execution): {command}"
+action = "Bash history command (execution): {command}"
 timestamp_field = "ts"
 
 [linux.functions.commandhistory]
-description = "Unix shell command history (execution): {command}"
+action = "Unix shell command history (execution): {command}"
 timestamp_field = "ts"
 
 [linux.functions."openssh.authorized_keys"]
-description = "authorized_keys entry (access / trust / persistence context): {comment} ({key_type}) — {path}"
+action = "authorized_keys entry (access / trust / persistence context): {comment} ({key_type}) — {path}"
 timestamp_field = "ts"
 
 [[linux.walkfs]]
 walkfs_path = "/etc/cron.d"
 path_glob = "**/*"
-description = "cron.d drop-in file (scheduled execution): {path}"
+action = "cron.d drop-in file (scheduled execution): {path}"
 timestamp_field = "mtime"
 
 [[linux.walkfs]]
 walkfs_path = "/etc/cron.daily"
 path_glob = "**/*"
-description = "cron.daily script (scheduled execution): {path}"
+action = "cron.daily script (scheduled execution): {path}"
 timestamp_field = "mtime"
 
 [[linux.walkfs]]
 walkfs_path = "/etc/systemd/system"
 path_glob = "**/*"
-description = "systemd unit file (persistence): {path}"
+action = "systemd unit file (persistence): {path}"
 timestamp_field = "mtime"
 
 [[linux.walkfs]]
 walkfs_path = "/lib/systemd/system"
 path_glob = "**/*"
-description = "systemd vendor unit file (persistence): {path}"
+action = "systemd vendor unit file (persistence): {path}"
 timestamp_field = "mtime"
 
 [[linux.walkfs]]
 walkfs_path = "/etc/init.d"
 path_glob = "**/*"
-description = "init.d script (persistence): {path}"
+action = "init.d script (persistence): {path}"
 timestamp_field = "mtime"
 
 [[linux.walkfs]]
 walkfs_path = "/etc/rc.local"
-description = "rc.local (boot persistence): {path}"
+action = "rc.local (boot persistence): {path}"
 timestamp_field = "mtime"
 
 [[linux.walkfs]]
 walkfs_path = "/home"
 path_substring = "/.ssh/"
 path_glob = "**/*"
-description = "User SSH configuration file (access / trust): {path}"
+action = "User SSH configuration file (access / trust): {path}"
 timestamp_field = "mtime"
 
 [[linux.walkfs]]
 walkfs_path = "/root"
 path_substring = ".ssh"
 path_glob = "**/*"
-description = "Root SSH configuration file: {path}"
+action = "Root SSH configuration file: {path}"
 timestamp_field = "mtime"
 
 [[linux.walkfs]]
 walkfs_path = "/etc/profile.d"
 path_glob = "**/*"
-description = "profile.d script (login execution): {path}"
+action = "profile.d script (login execution): {path}"
 timestamp_field = "mtime"
 
 [macos.functions.commandhistory]
-description = "Shell command history (execution): {command}"
+action = "Shell command history (execution): {command}"
 timestamp_field = "ts"
 
 [macos.functions.bashhistory]
-description = "Bash history (execution): {command}"
+action = "Bash history (execution): {command}"
 timestamp_field = "ts"
 
 [macos.functions."openssh.authorized_keys"]
-description = "authorized_keys entry: {comment} ({key_type}) — {path}"
+action = "authorized_keys entry: {comment} ({key_type}) — {path}"
 timestamp_field = "ts"
 
 [[macos.walkfs]]
 walkfs_path = "/Library/LaunchAgents"
 path_glob = "**/*.plist"
-description = "Launch Agent plist (user persistence): {path}"
+action = "Launch Agent plist (user persistence): {path}"
 timestamp_field = "mtime"
 
 [[macos.walkfs]]
 walkfs_path = "/Library/LaunchDaemons"
 path_glob = "**/*.plist"
-description = "Launch Daemon plist (system persistence): {path}"
+action = "Launch Daemon plist (system persistence): {path}"
 timestamp_field = "mtime"
 
 [[macos.walkfs]]
 walkfs_path = "/Library/StartupItems"
 path_glob = "**/*"
-description = "Legacy StartupItems entry: {path}"
+action = "Legacy StartupItems entry: {path}"
 timestamp_field = "mtime"
 
 [[macos.walkfs]]
 walkfs_path = "/Users"
 path_substring = "/Library/LaunchAgents/"
 path_glob = "**/*.plist"
-description = "User LaunchAgents plist: {path}"
+action = "User LaunchAgents plist: {path}"
 timestamp_field = "mtime"
 
 
 # Dissectify macOS plugins (`macos.*` namespace) — persistence execution
 [macos.functions."macos.autostart.launch_agents"]
-description = "macOS LaunchAgent (Dissectify): {label} — {program} ({source})"
+action = "macOS LaunchAgent (Dissectify): {label} — {program} ({source})"
 
 [macos.functions."macos.autostart.launch_daemons"]
-description = "macOS LaunchDaemon (Dissectify): {label} — {program} ({source})"
+action = "macOS LaunchDaemon (Dissectify): {label} — {program} ({source})"
 
 [macos.functions."macos.autostart.launch_items"]
-description = "macOS launchd item (Dissectify): {label} — {program} ({source})"
+action = "macOS launchd item (Dissectify): {label} — {program} ({source})"
 
 [macos.functions."macos.autostart.system_extensions"]
-description = "macOS system extension (Dissectify): {identifier} — {state} ({source})"
+action = "macOS system extension (Dissectify): {identifier} — {state} ({source})"
 
 [macos.functions."macos.autostart.kernel_extensions"]
-description = "macOS kernel extension (Dissectify): {bundle_id} — {version} ({source})"
+action = "macOS kernel extension (Dissectify): {bundle_id} — {version} ({source})"
 
 [macos.functions."macos.autostart.cronjobs"]
-description = "macOS cron (Dissectify): {schedule} — {command} (user {user}, {source})"
+action = "macOS cron (Dissectify): {schedule} — {command} (user {user}, {source})"
 
 [macos.functions."macos.autostart.periodic"]
-description = "macOS periodic job (Dissectify): {name} — {period} ({source})"
+action = "macOS periodic job (Dissectify): {name} — {period} ({source})"
 
 [macos.functions."macos.autostart.startup_items"]
-description = "macOS StartupItem (Dissectify): {name} — {item_location} ({source})"
+action = "macOS StartupItem (Dissectify): {name} — {item_location} ({source})"
 
 [macos.functions."macos.autostart.startup_files"]
-description = "macOS startup file (Dissectify): {filename} ({source})"
+action = "macOS startup file (Dissectify): {filename} ({source})"
 
 [macos.functions."macos.kext.installed"]
-description = "macOS KEXT installed (Dissectify): {bundle_id} — {bundle_version} ({kext_location}, {source})"
+action = "macOS KEXT installed (Dissectify): {bundle_id} — {bundle_version} ({kext_location}, {source})"
 
 [macos.functions."macos.kext.load_history"]
-description = "macOS KEXT load history (Dissectify): {bundle_id} — last_seen {last_seen} ({source})"
+action = "macOS KEXT load history (Dissectify): {bundle_id} — last_seen {last_seen} ({source})"
 
 [macos.functions."macos.kext.system_extensions"]
-description = "macOS system extension (Dissectify): {identifier} ({source})"
+action = "macOS system extension (Dissectify): {identifier} ({source})"
 
 [macos.functions."macos.profiles.installed"]
-description = "macOS configuration profile (Dissectify): {display_name} — {identifier} ({source})"
+action = "macOS configuration profile (Dissectify): {display_name} — {identifier} ({source})"
 
 [macos.functions."macos.profiles.payloads"]
-description = "macOS profile payload (Dissectify): {payload_type} — {payload_identifier} ({source})"
+action = "macOS profile payload (Dissectify): {payload_type} — {payload_identifier} ({source})"
 
 [macos.functions."macos.profiles.settings"]
-description = "macOS profile setting (Dissectify): {filename}::{key} = {value} ({source})"
+action = "macOS profile setting (Dissectify): {filename}::{key} = {value} ({source})"
 
 [macos.functions."macos.execpolicy.entries"]
-description = "macOS Gatekeeper/exec policy (Dissectify): {bundle_id} — signed_by {signing_id} ({source})"
+action = "macOS Gatekeeper/exec policy (Dissectify): {bundle_id} — signed_by {signing_id} ({source})"
 
 [macos.functions."macos.tcc.access"]
-description = "macOS TCC permission (Dissectify): {service} — {client} ({source})"
+action = "macOS TCC permission (Dissectify): {service} — {client} ({source})"
 timestamp_field = "ts"
 
 [macos.functions."macos.tcc.expired"]
-description = "macOS TCC expired consent (Dissectify): {service} — {client} ({source})"
+action = "macOS TCC expired consent (Dissectify): {service} — {client} ({source})"
 
 [macos.functions."macos.tcc.location_clients"]
-description = "macOS location client (Dissectify): {bundle_id} — authorized {authorized} ({source})"
+action = "macOS location client (Dissectify): {bundle_id} — authorized {authorized} ({source})"
 
 [macos.functions."macos.sudoers.entries"]
-description = "macOS sudoers (Dissectify): {rule} ({source})"
+action = "macOS sudoers (Dissectify): {rule} ({source})"
 
 [macos.functions."macos.sudolog.entries"]
-description = "macOS sudo lastrun (Dissectify): {username} ({source})"
+action = "macOS sudo lastrun (Dissectify): {username} ({source})"
 timestamp_field = "ts_last_sudo"
 
 [macos.functions."macos.firewall.pf_rules"]
-description = "macOS pf rule (Dissectify): {rule} ({source})"
+action = "macOS pf rule (Dissectify): {rule} ({source})"
 
 [macos.functions."macos.firewall.alf_config"]
-description = "macOS application firewall config (Dissectify): {setting} — {value} ({source})"
+action = "macOS application firewall config (Dissectify): {setting} — {value} ({source})"
 
 [macos.functions."macos.firewall.alf_exceptions"]
-description = "macOS firewall exception (Dissectify): {path} ({source})"
+action = "macOS firewall exception (Dissectify): {path} ({source})"
 
 [macos.functions."macos.firewall.alf_services"]
-description = "macOS firewall service (Dissectify): {service_name} — state {state} ({source})"
+action = "macOS firewall service (Dissectify): {service_name} — state {state} ({source})"
 
 [macos.functions."macos.firewall.alf_apps"]
-description = "macOS firewall app rule (Dissectify): {path} ({source})"
+action = "macOS firewall app rule (Dissectify): {path} ({source})"
 
 [macos.functions."macos.preferences.list"]
-description = "macOS preferences plist (Dissectify): {plist_name} ({source})"
+action = "macOS preferences plist (Dissectify): {plist_name} ({source})"
 
 [macos.functions."macos.preferences.entries"]
-description = "macOS preference entry (Dissectify): {plist_name}::{key_path} — {value} ({source})"
+action = "macOS preference entry (Dissectify): {plist_name}::{key_path} — {value} ({source})"
 
 [macos.functions."macos.applications.installed"]
-description = "macOS installed application (Dissectify): {app_name} — {bundle_id} ({source})"
+action = "macOS installed application (Dissectify): {app_name} — {bundle_id} ({source})"
 
 [macos.functions."macos.launchpad.apps"]
-description = "macOS Launchpad app (Dissectify): {title} — {bundle_id} ({source})"
+action = "macOS Launchpad app (Dissectify): {title} — {bundle_id} ({source})"
 
 [macos.functions."macos.spotlight.applist"]
-description = "macOS Spotlight app list (Dissectify): {display_name} — {path} ({source})"
+action = "macOS Spotlight app list (Dissectify): {display_name} — {path} ({source})"
 
 [macos.functions."macos.spotlightshortcuts.entries"]
-description = "macOS Spotlight shortcut (Dissectify): {display_name} ({source})"
+action = "macOS Spotlight shortcut (Dissectify): {display_name} ({source})"
 
 [macos.functions."macos.osinfo.version"]
-description = "macOS version info (Dissectify): {product_name} — {product_version} ({source})"
+action = "macOS version info (Dissectify): {product_name} — {product_version} ({source})"
 
 [macos.functions."macos.osinfo.install_date"]
-description = "macOS install date (Dissectify): {ts_installed} ({source})"
+action = "macOS install date (Dissectify): {ts_installed} ({source})"
 timestamp_field = "ts_installed"
 
 [macos.functions."macos.localtime.info"]
-description = "macOS local time settings (Dissectify): {timezone} ({source})"
+action = "macOS local time settings (Dissectify): {timezone} ({source})"
 
 [macos.functions."macos.localusers.entries"]
-description = "macOS local user (Dissectify): {realname} ({uid}/{gid}, {home}, {shell}, {source})"
+action = "macOS local user (Dissectify): {realname} ({uid}/{gid}, {home}, {shell}, {source})"
 
 [macos.functions."macos.accounts.entries"]
-description = "macOS Accounts DB account (Dissectify): {username} — {identifier} ({source})"
+action = "macOS Accounts DB account (Dissectify): {username} — {identifier} ({source})"
 
 [macos.functions."macos.accounts.properties"]
-description = "macOS account property (Dissectify): {key} — {value} ({source})"
+action = "macOS account property (Dissectify): {key} — {value} ({source})"
 
 [macos.functions."macos.shellhistory.entries"]
-description = "macOS shell history (Dissectify): {command} ({source})"
+action = "macOS shell history (Dissectify): {command} ({source})"
 timestamp_field = "ts"
 
 [macos.functions."macos.etcfiles.entries"]
-description = "macOS /etc file line (Dissectify): {filename}:{line_number} ({source})"
+action = "macOS /etc file line (Dissectify): {filename}:{line_number} ({source})"
 
 [macos.functions."macos.printjobs.entries"]
-description = "macOS print job line (Dissectify): {filename}:{line} ({source})"
+action = "macOS print job line (Dissectify): {filename}:{line} ({source})"
 
 [unix.functions.commandhistory]
-description = "Shell command history (execution): {command}"
+action = "Shell command history (execution): {command}"
 timestamp_field = "ts"
 
 [unix.functions.bashhistory]
-description = "Bash history (execution): {command}"
+action = "Bash history (execution): {command}"
 timestamp_field = "ts"
 
 [unix.functions.cronjobs]
-description = "Cron entry (scheduled execution): {command} (source {source})"
+action = "Cron entry (scheduled execution): {command} (source {source})"
 timestamp_field = "ts"
 
 [unix.functions."openssh.authorized_keys"]
-description = "authorized_keys entry: {comment} ({key_type}) — {path}"
+action = "authorized_keys entry: {comment} ({key_type}) — {path}"
 timestamp_field = "ts"
 
 [[unix.walkfs]]
 walkfs_path = "/etc/periodic"
 path_glob = "**/*"
-description = "BSD periodic script (scheduled execution): {path}"
+action = "BSD periodic script (scheduled execution): {path}"
 timestamp_field = "mtime"
 
 [[unix.walkfs]]
 walkfs_path = "/usr/local/etc/rc.d"
 path_glob = "**/*"
-description = "rc.d script (persistence): {path}"
+action = "rc.d script (persistence): {path}"
 timestamp_field = "mtime"
 
 [bsd.functions.commandhistory]
-description = "Shell command history (execution): {command}"
+action = "Shell command history (execution): {command}"
 timestamp_field = "ts"
 
 [bsd.functions.cronjobs]
-description = "Cron entry: {command} (source {source})"
+action = "Cron entry: {command} (source {source})"
 timestamp_field = "ts"
 
 [bsd.functions."openssh.authorized_keys"]
-description = "authorized_keys entry: {comment} ({key_type}) — {path}"
+action = "authorized_keys entry: {comment} ({key_type}) — {path}"
 timestamp_field = "ts"
 
 
@@ -407,186 +412,186 @@ timestamp_field = "ts"
 # tasks, usb, etc.) are intentionally skipped — see DUPLICATES in regripper.py.
 
 [windows.functions."regripper.appcertdlls"]
-description = "AppCertDlls global DLL injection (T1546.009 persistence): {value} (name {name}, key {key})"
+action = "AppCertDlls global DLL injection (T1546.009 persistence): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.appcompatflags"]
-description = "Per-app shim layers / RunAsAdmin (T1546.011 application shimming): {name}={value} (key {key})"
+action = "Per-app shim layers / RunAsAdmin (T1546.011 application shimming): {name}={value} (key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.apppaths"]
-description = "App Paths registered launch shortcut (persistence/execution): {name}={value} (key {key})"
+action = "App Paths registered launch shortcut (persistence/execution): {name}={value} (key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.appspecific"]
-description = "AppSpecific accessibility services persistence (T1546): {value} (name {name}, key {key})"
+action = "AppSpecific accessibility services persistence (T1546): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.appkeys"]
-description = "AppKey keyboard-shortcut handler (rare execution vector): {value} (name {name}, key {key})"
+action = "AppKey keyboard-shortcut handler (rare execution vector): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.at"]
-description = "Legacy AT scheduled job (Schedule\\TaskCache\\Tree): subkey {subkey} (key {key})"
+action = "Legacy AT scheduled job (Schedule\\TaskCache\\Tree): subkey {subkey} (key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.baseline"]
-description = "Generic well-known autostart key dump: {value} (name {name}, key {key})"
+action = "Generic well-known autostart key dump: {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.cmd_shell"]
-description = "cmd/exe/bat shell\\open\\command hijack (T1546.001): {value} (name {name}, key {key})"
+action = "cmd/exe/bat shell\\open\\command hijack (T1546.001): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.direct"]
-description = "DirectShow filter graph plug-in (potential persistence): {value} (name {name}, key {key})"
+action = "DirectShow filter graph plug-in (potential persistence): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.drivers32"]
-description = "Drivers32 multimedia/codec driver (legacy persistence): {value} (name {name}, key {key})"
+action = "Drivers32 multimedia/codec driver (legacy persistence): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.execpolicy"]
-description = "PowerShell ExecutionPolicy setting: {value} (name {name}, key {key})"
+action = "PowerShell ExecutionPolicy setting: {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.exefile"]
-description = "exefile shell\\open\\command hijack (T1546.001): {value} (name {name}, key {key})"
+action = "exefile shell\\open\\command hijack (T1546.001): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.fileless"]
-description = "Fileless persistence — large/binary value in autostart key: {name} (type {value_type}, key {key})"
+action = "Fileless persistence — large/binary value in autostart key: {name} (type {value_type}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.findexes"]
-description = "HKCR file extension shell\\open\\command hijack target: {value} (name {name}, key {key})"
+action = "HKCR file extension shell\\open\\command hijack target: {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.gpohist"]
-description = "Group Policy applied/history entry: {value} (name {name}, key {key})"
+action = "Group Policy applied/history entry: {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.heap"]
-description = "Image File Execution Options GlobalFlag/heap (T1546.012 indicator): {value} (name {name}, key {key})"
+action = "Image File Execution Options GlobalFlag/heap (T1546.012 indicator): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.imagefile"]
-description = "Image File Execution Options Debugger (T1546.012 silent debugger): {value} (name {name}, key {key})"
+action = "Image File Execution Options Debugger (T1546.012 silent debugger): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.injectdll64"]
-description = "Wow64 InjectDll64 DLL injection persistence: {value} (name {name}, key {key})"
+action = "Wow64 InjectDll64 DLL injection persistence: {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.inprocserver"]
-description = "COM InprocServer32 path (CLSID hijack target): {value} (name {name}, key {key})"
+action = "COM InprocServer32 path (CLSID hijack target): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.lxss"]
-description = "Windows Subsystem for Linux distribution: subkey {subkey} (key {key})"
+action = "Windows Subsystem for Linux distribution: subkey {subkey} (key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.netsh"]
-description = "Netsh helper / Software\\Microsoft\\NetSh extension (T1546.007): {value} (name {name}, key {key})"
+action = "Netsh helper / Software\\Microsoft\\NetSh extension (T1546.007): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.powershellcore"]
-description = "PowerShell Core / 7 setting (HKCU): {value} (name {name}, key {key})"
+action = "PowerShell Core / 7 setting (HKCU): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.printdemon"]
-description = "Print Monitors entry (PrintDemon CVE-2020-1048 persistence): subkey {subkey} (key {key})"
+action = "Print Monitors entry (PrintDemon CVE-2020-1048 persistence): subkey {subkey} (key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.printmon"]
-description = "Print Providers entry (spooler-loaded DLL persistence): {value} (name {name}, key {key})"
+action = "Print Providers entry (spooler-loaded DLL persistence): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.profiler"]
-description = "COR_PROFILER / .NET ETW profiler (T1574.012): {value} (name {name}, key {key})"
+action = "COR_PROFILER / .NET ETW profiler (T1574.012): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.pslogging"]
-description = "PowerShell ScriptBlockLogging / ModuleLogging / Transcription policy: {value} (name {name}, key {key})"
+action = "PowerShell ScriptBlockLogging / ModuleLogging / Transcription policy: {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.psscript"]
-description = "PSReadline ConsoleHistory reference: {value} (name {name}, key {key})"
+action = "PSReadline ConsoleHistory reference: {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.runvirtual"]
-description = "App-V RunVirtual virtual application registration: {value} (name {name}, key {key})"
+action = "App-V RunVirtual virtual application registration: {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.schedagent"]
-description = "Task Scheduler service agent setting: {value} (name {name}, key {key})"
+action = "Task Scheduler service agent setting: {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.scriptleturl"]
-description = "ScriptletURL (Squiblydoo / scriptlet COM hijack): {value} (name {name}, key {key})"
+action = "ScriptletURL (Squiblydoo / scriptlet COM hijack): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.securityproviders"]
-description = "SecurityProviders LSA persistence (T1547.005): {value} (name {name}, key {key})"
+action = "SecurityProviders LSA persistence (T1547.005): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.shelloverlay"]
-description = "ShellIconOverlayIdentifiers persistence (T1546.005): {value} (name {name}, key {key})"
+action = "ShellIconOverlayIdentifiers persistence (T1546.005): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.svcdll"]
-description = "Service ServiceDll path (svchost-loaded DLL persistence): {value} (name {name}, key {key})"
+action = "Service ServiceDll path (svchost-loaded DLL persistence): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.syscache"]
-description = "Syscache (legacy AppLocker cache) execution evidence: {value} (name {name}, key {key})"
+action = "Syscache (legacy AppLocker cache) execution evidence: {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.wbem"]
-description = "WBEM (WMI) configuration value: {value} (name {name}, key {key})"
+action = "WBEM (WMI) configuration value: {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.wsh_settings"]
-description = "Windows Script Host (WSH) setting (Enabled/Remote/Trust): {value} (name {name}, key {key})"
+action = "Windows Script Host (WSH) setting (Enabled/Remote/Trust): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 # defense evasion / anti-forensics
 [windows.functions."regripper.backuprestore"]
-description = "FilesNotToBackup / FilesNotToSnapshot / KeysNotToRestore (T1564.009 evasion): {value} (name {name}, key {key})"
+action = "FilesNotToBackup / FilesNotToSnapshot / KeysNotToRestore (T1564.009 evasion): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.disableeventlog"]
-description = "Eventlog service Start value (T1562.002 logging tampering): {value} (name {name}, key {key})"
+action = "Eventlog service Start value (T1562.002 logging tampering): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.disablelastaccess"]
-description = "NtfsDisableLastAccessUpdate (timestomp-friendly setting): {value} (name {name}, key {key})"
+action = "NtfsDisableLastAccessUpdate (timestomp-friendly setting): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.disablemru"]
-description = "NoRecentDocsHistory policy (suppresses Recent Docs): {value} (name {name}, key {key})"
+action = "NoRecentDocsHistory policy (suppresses Recent Docs): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.disableremotescm"]
-description = "DisableRemoteScmEndpoints (PsExec/SCM lateral hardening): {value} (name {name}, key {key})"
+action = "DisableRemoteScmEndpoints (PsExec/SCM lateral hardening): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.disablesr"]
-description = "DisableSR — System Restore / VSS disabled (T1490 inhibit recovery): {value} (name {name}, key {key})"
+action = "DisableSR — System Restore / VSS disabled (T1490 inhibit recovery): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.disableuserassist"]
-description = "UserAssist / NoLogSlowLink suppression policy (anti-forensics): {value} (name {name}, key {key})"
+action = "UserAssist / NoLogSlowLink suppression policy (anti-forensics): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.rlo"]
-description = "RLO/RTLO character in autostart value (T1036.002 masquerading): {value} (name {name}, key {key})"
+action = "RLO/RTLO character in autostart value (T1036.002 masquerading): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.sfc"]
-description = "SFCDisable / System File Checker policy (defense evasion): {value} (name {name}, key {key})"
+action = "SFCDisable / System File Checker policy (defense evasion): {value} (name {name}, key {key})"
 timestamp_field = "ts"
 
 [windows.functions."regripper.uacbypass"]
-description = "Known UAC bypass handler key (sdclt/eventvwr/fodhelper): {value} (name {name}, key {key})"
+action = "Known UAC bypass handler key (sdclt/eventvwr/fodhelper): {value} (name {name}, key {key})"
 timestamp_field = "ts"

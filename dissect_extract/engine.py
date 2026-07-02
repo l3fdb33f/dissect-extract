@@ -21,8 +21,8 @@ except ImportError:
 
 from dissect_extract.context import (
     UserAccountMap,
-    enrich_description,
     extract_event_context,
+    format_narrative,
     format_raw_record,
 )
 from dissect_extract.keywords import KeywordFilter
@@ -120,7 +120,7 @@ def _iter_linux_yara_persistence(
         return
     ref = importlib.resources.files("dissect_extract.data") / LINUX_YARA_RULES
     meta = {
-        "description": (
+        "action": (
             "Possible Persistence: {kind_label} based on the YARA rule matching ({path}, rule {yara_rule})"
         ),
         "timestamp_field": "mtime",
@@ -214,7 +214,7 @@ def _os_sections_for_target(
     return block if isinstance(block, dict) else None
 
 
-def _describe_record(
+def _resolve_action(
     func_name: str,
     mapping: dict[str, Any],
     func_meta: dict[str, Any],
@@ -227,11 +227,12 @@ def _describe_record(
             continue
         if match_scenario(sc, func_name, mapping):
             sc_ts = sc.get("timestamp_field")
-            return safe_format(str(sc["description"]), mapping), (sc_ts if sc_ts else ts_field)
-    desc_tpl = func_meta.get("description")
-    if not desc_tpl:
+            tpl = sc.get("action") or sc.get("description")
+            return str(tpl or func_name), (sc_ts if sc_ts else ts_field)
+    action_tpl = func_meta.get("action") or func_meta.get("description")
+    if not action_tpl:
         return f"{func_name}: {mapping}", ts_field
-    return safe_format(str(desc_tpl), mapping), ts_field
+    return str(action_tpl), ts_field
 
 
 def _call_plugin_function(target: Target, name: str, kwargs: dict[str, Any] | None):
@@ -317,7 +318,7 @@ def _iter_applicable_records(
                 continue
             root = walk.get("walkfs_path", "/")
             meta = {
-                "description": walk.get("description", "Filesystem entry: {path}"),
+                "action": walk.get("action", walk.get("description", "Filesystem entry: {path}")),
                 "timestamp_field": walk.get("timestamp_field", "mtime"),
             }
             out = _call_plugin_function(target, "walkfs", {"walkfs_path": root})
@@ -346,6 +347,7 @@ def collect_events(
 ) -> list[TimelineEvent]:
     tname = getattr(target, "name", None) or str(target.path or "target")
     sid_map = UserAccountMap(target)
+    category_meta: dict[str, dict[str, Any]] = {}
     events: list[TimelineEvent] = []
     dump_f = None
     try:
@@ -368,7 +370,15 @@ def collect_events(
         )
         for category, func_name, meta, scenarios, target_os, rec in combined:
             mapping = record_mapping(rec)
-            desc, ts_f = _describe_record(func_name, mapping, meta, scenarios, target_os)
+            if category not in category_meta:
+                try:
+                    toml_data = load_category_toml(category)
+                    raw = toml_data.get("meta")
+                    category_meta[category] = raw if isinstance(raw, dict) else {}
+                except Exception:
+                    category_meta[category] = {}
+            action_tpl, ts_f = _resolve_action(func_name, mapping, meta, scenarios, target_os)
+            resolved_action = safe_format(action_tpl, mapping)
             ctx = extract_event_context(
                 mapping,
                 category=category,
@@ -376,12 +386,11 @@ def collect_events(
                 sid_map=sid_map,
                 record=rec,
             )
-            desc = enrich_description(
-                desc,
+            desc = format_narrative(
+                resolved_action,
                 ctx,
-                mapping=mapping,
-                category=category,
-                source_function=func_name,
+                meta=category_meta[category],
+                fallback=resolved_action,
             )
             raw_record = format_raw_record(mapping)
             if keyword_filter is not None and keyword_filter.active:
@@ -409,7 +418,7 @@ def collect_events(
                     target_name=tname,
                     record_type=rtype_s,
                     user=ctx.user,
-                    action=ctx.action,
+                    action=resolved_action,
                     source_ip=ctx.source_ip,
                     dest_ip=ctx.dest_ip,
                     raw_record=raw_record,
