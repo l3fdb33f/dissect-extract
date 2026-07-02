@@ -39,6 +39,21 @@ def _setup_logging(verbose: bool) -> None:
     logging.basicConfig(level=level, format="%(levelname)s %(name)s: %(message)s")
 
 
+_TIMELINE_FIELDS = (
+    "timestamp",
+    "category",
+    "source_function",
+    "description",
+    "target",
+    "record_type",
+    "user",
+    "action",
+    "source_ip",
+    "dest_ip",
+    "raw_record",
+)
+
+
 def _events_as_dicts(events: list[TimelineEvent]) -> list[dict[str, Any]]:
     return [
         {
@@ -48,6 +63,11 @@ def _events_as_dicts(events: list[TimelineEvent]) -> list[dict[str, Any]]:
             "description": e.description,
             "target": e.target_name,
             "record_type": e.record_type,
+            "user": e.user,
+            "action": e.action,
+            "source_ip": e.source_ip,
+            "dest_ip": e.dest_ip,
+            "raw_record": e.raw_record,
         }
         for e in events
     ]
@@ -59,10 +79,7 @@ def _write_json(events: list[TimelineEvent], fp: TextIO) -> None:
 
 
 def _write_csv(events: list[TimelineEvent], fp: TextIO) -> None:
-    w = csv.DictWriter(
-        fp,
-        fieldnames=["timestamp", "category", "source_function", "description", "target", "record_type"],
-    )
+    w = csv.DictWriter(fp, fieldnames=list(_TIMELINE_FIELDS))
     w.writeheader()
     for row in _events_as_dicts(events):
         w.writerow(row)

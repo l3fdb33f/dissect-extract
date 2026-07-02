@@ -19,6 +19,12 @@ try:
 except ImportError:
     _DISSECT_HAS_YARA = False
 
+from dissect_extract.context import (
+    SidUsernameMap,
+    enrich_description,
+    extract_event_context,
+    format_raw_record,
+)
 from dissect_extract.keywords import KeywordFilter
 from dissect_extract.util import (
     fnmatch_path,
@@ -179,6 +185,11 @@ class TimelineEvent:
     description: str
     target_name: str
     record_type: str | None = None
+    user: str | None = None
+    action: str | None = None
+    source_ip: str | None = None
+    dest_ip: str | None = None
+    raw_record: str = ""
 
 
 def load_category_toml(category: str) -> dict[str, Any]:
@@ -334,6 +345,7 @@ def collect_events(
     keyword_filter: KeywordFilter | None = None,
 ) -> list[TimelineEvent]:
     tname = getattr(target, "name", None) or str(target.path or "target")
+    sid_map = SidUsernameMap(target)
     events: list[TimelineEvent] = []
     dump_f = None
     try:
@@ -357,6 +369,15 @@ def collect_events(
         for category, func_name, meta, scenarios, target_os, rec in combined:
             mapping = record_mapping(rec)
             desc, ts_f = _describe_record(func_name, mapping, meta, scenarios, target_os)
+            ctx = extract_event_context(
+                mapping,
+                category=category,
+                source_function=func_name,
+                sid_map=sid_map,
+                record=rec,
+            )
+            desc = enrich_description(desc, ctx)
+            raw_record = format_raw_record(mapping)
             if keyword_filter is not None and keyword_filter.active:
                 if not keyword_filter.matches(
                     mapping,
@@ -381,6 +402,11 @@ def collect_events(
                     description=desc,
                     target_name=tname,
                     record_type=rtype_s,
+                    user=ctx.user,
+                    action=ctx.action,
+                    source_ip=ctx.source_ip,
+                    dest_ip=ctx.dest_ip,
+                    raw_record=raw_record,
                 ),
             )
             if dump_f is not None:
