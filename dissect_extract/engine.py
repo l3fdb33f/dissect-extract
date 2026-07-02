@@ -20,7 +20,7 @@ except ImportError:
     _DISSECT_HAS_YARA = False
 
 from dissect_extract.context import (
-    SidUsernameMap,
+    UserAccountMap,
     enrich_description,
     extract_event_context,
     format_raw_record,
@@ -345,7 +345,7 @@ def collect_events(
     keyword_filter: KeywordFilter | None = None,
 ) -> list[TimelineEvent]:
     tname = getattr(target, "name", None) or str(target.path or "target")
-    sid_map = SidUsernameMap(target)
+    sid_map = UserAccountMap(target)
     events: list[TimelineEvent] = []
     dump_f = None
     try:
@@ -376,7 +376,13 @@ def collect_events(
                 sid_map=sid_map,
                 record=rec,
             )
-            desc = enrich_description(desc, ctx)
+            desc = enrich_description(
+                desc,
+                ctx,
+                mapping=mapping,
+                category=category,
+                source_function=func_name,
+            )
             raw_record = format_raw_record(mapping)
             if keyword_filter is not None and keyword_filter.active:
                 if not keyword_filter.matches(

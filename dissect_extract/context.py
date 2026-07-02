@@ -13,16 +13,20 @@ from dissect_extract.util import format_record_value, to_jsonable
 log = logging.getLogger(__name__)
 
 _SID_RE = re.compile(r"^S-1-\d+(-\d+)+$", re.IGNORECASE)
+_GUID_RE = re.compile(
+    r"^[{\[]?[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}[}\]]?$",
+    re.IGNORECASE,
+)
 _IPV4_RE = re.compile(
     r"\b(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\b",
 )
+_DOMAIN_RE = re.compile(r"^[a-z0-9][a-z0-9.-]*\.[a-z]{2,}$", re.IGNORECASE)
 
 _RAW_RECORD_SKIP = frozenset({"_generated", "_version", "_source", "_classification"})
 
 USER_FIELDS: tuple[str, ...] = (
     "username",
     "user",
-    "name",
     "ut_user",
     "authenticated_user",
     "SubjectUserName",
@@ -34,6 +38,9 @@ USER_FIELDS: tuple[str, ...] = (
     "UserName",
     "run_as",
     "user_id",
+    "sam_name",
+    "cn",
+    "upn",
 )
 
 SID_FIELDS: tuple[str, ...] = (
@@ -41,26 +48,8 @@ SID_FIELDS: tuple[str, ...] = (
     "user_sid",
     "SubjectUserSid",
     "TargetUserSid",
+    "Security_UserID",
     "SubjectLogonId",
-)
-
-ACTION_FIELDS: tuple[str, ...] = (
-    "command",
-    "action",
-    "EventID",
-    "message",
-    "comm",
-    "role_name",
-    "task_name",
-    "Provider_Name",
-    "ut_type",
-    "behavior_type",
-    "call_type",
-    "setting",
-    "yara_rule",
-    "link_name",
-    "product_name",
-    "executable",
 )
 
 SRC_IP_FIELDS: tuple[str, ...] = (
@@ -79,6 +68,7 @@ SRC_IP_FIELDS: tuple[str, ...] = (
     "InitiatingHost",
     "initiating_ip",
     "SourceIpAddress",
+    "EventXML_Param3",
 )
 
 DST_IP_FIELDS: tuple[str, ...] = (
@@ -89,6 +79,42 @@ DST_IP_FIELDS: tuple[str, ...] = (
     "host",
 )
 
+# Terminal Services / RDP: Param1 is typically the username on these events.
+_EVENTXML_USER_FIRST_IDS = frozenset({1149, 21, 22, 24, 25, 41, 131, 1024, 1102})
+
+_EVENT_ID_VERB: dict[int, str] = {
+    1149: "connected via RDP",
+    21: "connected via RDP",
+    22: "disconnected RDP session",
+    24: "disconnected RDP session",
+    25: "reconnected RDP session",
+    41: "disconnected RDP session",
+    131: "connected via RDP",
+    1024: "initiated outbound RDP",
+    1102: "initiated outbound RDP",
+    4624: "logged on",
+    4625: "failed logon",
+    4648: "logged on with explicit credentials",
+    4672: "logged on with elevated privileges",
+    4768: "requested Kerberos TGT",
+    4769: "requested Kerberos service ticket",
+    4776: "authenticated via NTLM",
+    4778: "reconnected RDP session",
+    4779: "disconnected RDP session",
+    5140: "accessed a network share",
+    4697: "installed a service",
+    7045: "installed a remote service",
+    7036: "changed service state",
+    5860: "used WMI",
+    5861: "used WMI",
+    6: "connected via WinRM",
+    91: "received WinRM connection",
+    4103: "ran PowerShell",
+    4104: "ran PowerShell",
+    400: "started PowerShell",
+    800: "ran PowerShell pipeline",
+}
+
 
 @dataclass(frozen=True)
 class EventContext:
@@ -98,30 +124,90 @@ class EventContext:
     dest_ip: str | None = None
 
 
-class SidUsernameMap:
-    """Maps Windows SIDs (and Unix UIDs) to account names from ``target.users()``."""
+class UserAccountMap:
+    """SID/UID map plus known account names from profile list, SAM, and NTDS."""
 
-    __slots__ = ("_sid_to_name", "_uid_to_name")
+    __slots__ = ("_sid_to_name", "_uid_to_name", "_name_lookup")
 
     def __init__(self, target: Target) -> None:
         self._sid_to_name: dict[str, str] = {}
         self._uid_to_name: dict[int, str] = {}
+        self._name_lookup: dict[str, str] = {}
+        self._load_target_users(target)
+        self._load_sam(target)
+        self._load_ntds(target)
+
+    def _register_name(self, name: str | None) -> None:
+        if not name:
+            return
+        text = str(name).strip()
+        if not text or not _looks_like_username(text):
+            return
+        display = text
+        if "\\" in display:
+            display = display.split("\\", 1)[-1]
+        if "@" in display:
+            display = display.split("@", 1)[0]
+        key = display.lower()
+        if key and key not in self._name_lookup:
+            self._name_lookup[key] = display
+
+    def _register_sid(self, sid: str | None, name: str | None) -> None:
+        if sid and name:
+            self._sid_to_name[str(sid).upper()] = str(name)
+        if name:
+            self._register_name(name)
+
+    def _load_target_users(self, target: Target) -> None:
         try:
             for user in target.users():
                 name = getattr(user, "name", None)
-                if not name:
-                    continue
                 sid = getattr(user, "sid", None)
-                if sid:
-                    self._sid_to_name[str(sid).upper()] = str(name)
+                self._register_sid(str(sid) if sid else None, str(name) if name else None)
                 uid = getattr(user, "uid", None)
-                if uid is not None:
+                if name is not None and uid is not None:
                     try:
                         self._uid_to_name[int(uid)] = str(name)
                     except (TypeError, ValueError):
                         pass
         except Exception:
-            log.debug("Could not build SID/username map from target.users()", exc_info=True)
+            log.debug("Could not enumerate target.users()", exc_info=True)
+
+    def _load_sam(self, target: Target) -> None:
+        try:
+            if not target.has_function("sam"):
+                return
+            machine_sid = None
+            if target.has_function("machine_sid"):
+                machine_sid = next(target.machine_sid(), None)
+            domain_sid = getattr(machine_sid, "sid", None) if machine_sid else None
+            for rec in target.sam():
+                username = getattr(rec, "username", None)
+                rid = getattr(rec, "rid", None)
+                if domain_sid and rid is not None:
+                    self._register_sid(f"{domain_sid}-{rid}", str(username) if username else None)
+                elif username:
+                    self._register_name(str(username))
+        except Exception:
+            log.debug("Could not enumerate SAM accounts", exc_info=True)
+
+    def _load_ntds(self, target: Target) -> None:
+        try:
+            if not target.has_function("ad"):
+                return
+            ad = getattr(target, "ad", None)
+            if ad is None or not hasattr(ad, "users"):
+                return
+            for rec in ad.users():
+                sid = getattr(rec, "sid", None)
+                for candidate in (
+                    getattr(rec, "sam_name", None),
+                    getattr(rec, "cn", None),
+                    getattr(rec, "upn", None),
+                ):
+                    self._register_sid(str(sid) if sid else None, str(candidate) if candidate else None)
+        except Exception:
+            log.debug("Could not enumerate NTDS accounts", exc_info=True)
 
     def resolve(self, value: Any) -> str | None:
         if value is None:
@@ -136,10 +222,26 @@ class SidUsernameMap:
                 return self._uid_to_name.get(int(s), s)
             except ValueError:
                 pass
-        return s
+        return self.match_known_name(s)
+
+    def match_known_name(self, value: Any) -> str | None:
+        s = format_record_value(value).strip()
+        if not s or not _looks_like_username(s):
+            return None
+        if _SID_RE.match(s):
+            return self._sid_to_name.get(s.upper())
+        if "\\" in s:
+            s = s.split("\\", 1)[-1]
+        if "@" in s:
+            s = s.split("@", 1)[0]
+        return self._name_lookup.get(s.lower())
 
     def lookup_sid(self, sid: str) -> str | None:
         return self._sid_to_name.get(sid.upper())
+
+
+# Backward-compatible alias used by engine.py
+SidUsernameMap = UserAccountMap
 
 
 def _first_ipv4(value: Any) -> str | None:
@@ -164,46 +266,139 @@ def _collect_ipv4s(mapping: dict[str, Any]) -> list[str]:
     return found
 
 
+def _event_id(mapping: dict[str, Any]) -> int | None:
+    raw = mapping.get("EventID")
+    if raw is None:
+        return None
+    try:
+        return int(format_record_value(raw).strip())
+    except ValueError:
+        return None
+
+
+def _extract_user(
+    mapping: dict[str, Any],
+    *,
+    sid_map: UserAccountMap,
+    record: Any | None,
+) -> str | None:
+    for key in USER_FIELDS:
+        if key not in mapping:
+            continue
+        resolved = sid_map.resolve(mapping.get(key))
+        if resolved and _looks_like_username(resolved):
+            return resolved
+
+    eid = _event_id(mapping)
+    if eid in _EVENTXML_USER_FIRST_IDS:
+        p1 = mapping.get("EventXML_Param1")
+        if p1 is not None:
+            resolved = sid_map.match_known_name(p1)
+            if not resolved:
+                text = format_record_value(p1).strip()
+                if _looks_like_username(text):
+                    resolved = text
+            if resolved:
+                return str(resolved)
+
+    for key in sorted(k for k in mapping if str(k).startswith("EventXML_Param")):
+        val = mapping.get(key)
+        resolved = sid_map.match_known_name(val)
+        if resolved:
+            return resolved
+        text = format_record_value(val).strip()
+        if text and _looks_like_username(text) and not _DOMAIN_RE.match(text):
+            if eid in _EVENTXML_USER_FIRST_IDS and key.endswith("Param1"):
+                return text
+            if sid_map.match_known_name(text):
+                return sid_map.match_known_name(text)
+
+    for key in SID_FIELDS:
+        if key not in mapping:
+            continue
+        resolved = sid_map.resolve(mapping.get(key))
+        if resolved:
+            return resolved
+
+    for val in mapping.values():
+        hit = sid_map.match_known_name(val)
+        if hit:
+            return hit
+
+    if record is not None:
+        attached = getattr(record, "_user", None)
+        if attached is not None:
+            name = getattr(attached, "name", None)
+            if name:
+                return str(name)
+            sid = getattr(attached, "sid", None)
+            if sid:
+                return sid_map.resolve(str(sid))
+
+    return None
+
+
+def _action_phrase(
+    mapping: dict[str, Any],
+    *,
+    category: str,
+    source_function: str,
+) -> str | None:
+    eid = _event_id(mapping)
+    if eid is not None and eid in _EVENT_ID_VERB:
+        return _EVENT_ID_VERB[eid]
+
+    provider = format_record_value(mapping.get("Provider_Name", "")).lower()
+    fn = source_function.lower()
+
+    if "terminalservices" in provider or "remotedesktop" in provider or "rdp" in provider:
+        return "connected via RDP"
+    if "winrm" in provider:
+        return "connected via WinRM"
+    if "powershell" in provider:
+        return "ran PowerShell"
+    if "security-auditing" in provider and eid == 5140:
+        return "accessed a network share"
+    if "wmi-activity" in provider:
+        return "used WMI"
+
+    if "regripper.tsclient" in fn or "rdpclient" in fn or "bitmap" in fn:
+        return "connected via RDP"
+    if "regripper.rdpport" in fn:
+        return "configured RDP"
+    if "ssh" in fn or "authorized_keys" in fn or "known_hosts" in fn:
+        return "used SSH"
+    if "wtmp" in fn or "btmp" in fn or "lastlog" in fn:
+        return "logged in"
+    if "evtx" in fn and category == "lateral-movement":
+        return "performed lateral movement activity"
+    if category == "data-access":
+        return "accessed data"
+    if category == "data-exfiltration":
+        return "used network"
+    if category == "initial-access":
+        return "accessed resource"
+    if category == "persistence-execution":
+        if mapping.get("command"):
+            return "ran command"
+        if mapping.get("yara_rule"):
+            return "matched persistence rule"
+        return "modified persistence"
+    if category == "lateral-movement":
+        return "performed remote activity"
+    return None
+
+
 def extract_event_context(
     mapping: dict[str, Any],
     *,
     category: str,
     source_function: str,
-    sid_map: SidUsernameMap,
+    sid_map: UserAccountMap,
     record: Any | None = None,
 ) -> EventContext:
-    user: str | None = None
-    for key in USER_FIELDS:
-        if key not in mapping:
-            continue
-        resolved = sid_map.resolve(mapping.get(key))
-        if resolved and not _looks_like_empty(resolved):
-            user = resolved
-            break
-
-    if user is None:
-        for key in SID_FIELDS:
-            if key not in mapping:
-                continue
-            resolved = sid_map.resolve(mapping.get(key))
-            if resolved:
-                user = resolved
-                break
-
-    if user is None and record is not None:
-        attached = getattr(record, "_user", None)
-        if attached is not None:
-            user = getattr(attached, "name", None) or sid_map.resolve(getattr(attached, "sid", None))
-
-    action: str | None = None
-    for key in ACTION_FIELDS:
-        val = mapping.get(key)
-        if _looks_like_empty(val):
-            continue
-        text = format_record_value(val).strip()
-        if text:
-            action = text[:240]
-            break
+    user = _extract_user(mapping, sid_map=sid_map, record=record)
+    action = _action_phrase(mapping, category=category, source_function=source_function)
 
     source_ip: str | None = None
     dest_ip: str | None = None
@@ -227,12 +422,10 @@ def extract_event_context(
                 dest_ip = ip
                 break
 
-    if _wants_network_detail(category, source_function) and source_ip is None and dest_ip is None:
-        # Last resort for LM / network plugins: any IPv4 in the record blob.
-        if extra_ips:
-            source_ip = extra_ips[0]
-            if len(extra_ips) > 1:
-                dest_ip = extra_ips[1]
+    if _wants_network_detail(category, source_function) and source_ip is None and extra_ips:
+        source_ip = extra_ips[0]
+        if len(extra_ips) > 1 and dest_ip is None:
+            dest_ip = extra_ips[1]
 
     return EventContext(user=user, action=action, source_ip=source_ip, dest_ip=dest_ip)
 
@@ -241,34 +434,71 @@ def _wants_network_detail(category: str, source_function: str) -> bool:
     if category == "lateral-movement":
         return True
     fn = source_function.lower()
-    if "network" in fn or "netstat" in fn or "sru.network" in fn:
-        return True
-    return False
+    return "network" in fn or "netstat" in fn or "sru.network" in fn
 
 
-def _looks_like_empty(val: Any) -> bool:
-    if val is None:
-        return True
-    if isinstance(val, str) and not val.strip():
-        return True
-    return False
+def _looks_like_username(value: str) -> bool:
+    s = value.strip()
+    if not s or len(s) < 2:
+        return False
+    lower = s.lower()
+    if lower in {
+        "-",
+        "n/a",
+        "local system",
+        "localsystem",
+        "system",
+        "anonymous",
+        "defaultaccount",
+        "wdagutilityaccount",
+    }:
+        return False
+    if _SID_RE.match(s) or _GUID_RE.match(s) or _IPV4_RE.fullmatch(s) or _DOMAIN_RE.match(s):
+        return False
+    if s.isdigit():
+        return False
+    if not any(c.isalpha() for c in s):
+        return False
+    return True
 
 
-def enrich_description(base: str, ctx: EventContext) -> str:
-    """Append user / action / src / dst when any are known."""
+def enrich_description(
+    base: str,
+    ctx: EventContext,
+    *,
+    mapping: dict[str, Any] | None = None,
+    category: str = "",
+    source_function: str = "",
+) -> str:
+    """Build a short narrative description instead of appending redundant tags."""
 
-    tags: list[str] = []
-    if ctx.user:
-        tags.append(f"user: {ctx.user}")
-    if ctx.action:
-        tags.append(f"action: {ctx.action}")
+    action = ctx.action
+    if not action and mapping is not None:
+        action = _action_phrase(mapping, category=category, source_function=source_function)
+
+    if ctx.user and action:
+        text = f"User {ctx.user} {action}"
+    elif ctx.user:
+        text = f"User {ctx.user}"
+    elif action:
+        text = action[0].upper() + action[1:] if action else action
+    else:
+        text = _shorten_legacy_description(base)
+
     if ctx.source_ip:
-        tags.append(f"src: {ctx.source_ip}")
-    if ctx.dest_ip:
-        tags.append(f"dst: {ctx.dest_ip}")
-    if not tags:
-        return base
-    return f"{base} [{'; '.join(tags)}]"
+        text = f"{text} from {ctx.source_ip}"
+    if ctx.dest_ip and ctx.dest_ip != ctx.source_ip:
+        text = f"{text} to {ctx.dest_ip}"
+    return text
+
+
+def _shorten_legacy_description(base: str) -> str:
+    """Drop trailing artifact path parentheticals from TOML templates."""
+
+    text = base.strip()
+    if text.endswith(")") and " (" in text:
+        text = text.rsplit(" (", 1)[0].strip()
+    return text
 
 
 def format_raw_record(mapping: dict[str, Any]) -> str:
