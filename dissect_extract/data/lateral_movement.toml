@@ -235,7 +235,7 @@ timestamp_field = "regf_mtime"
 action = "Event {EventID}: {Provider_Name} lateral-movement signal ({source})"
 timestamp_field = "ts"
 # Filtered to high-signal event IDs/providers from the Lateral Movement Analyst Reference.
-field_regex = { Provider_Name = "(?i)^(Microsoft-Windows-Security-Auditing|Service Control Manager|Microsoft-Windows-TerminalServices-LocalSessionManager|Microsoft-Windows-TerminalServices-RemoteConnectionManager|Microsoft-Windows-RemoteDesktopServices-RdpCoreTS|Microsoft-Windows-TerminalServices-RDPClient|Microsoft-Windows-WMI-Activity|Microsoft-Windows-WinRM|Microsoft-Windows-PowerShell|Windows PowerShell)$", EventID = "^(4624|4625|4648|4672|4768|4769|4776|5140|4778|4779|7045|7036|4697|5860|5861|6|91|4103|4104|400|800|21|22|24|25|41|1149|131|1024|1102)$" }
+field_regex = { Provider_Name = "(?i)^(Microsoft-Windows-Security-Auditing|Service Control Manager|Microsoft-Windows-TerminalServices-LocalSessionManager|Microsoft-Windows-TerminalServices-RemoteConnectionManager|Microsoft-Windows-RemoteDesktopServices-RdpCoreTS|Microsoft-Windows-TerminalServices-RDPClient|Microsoft-Windows-WMI-Activity|Microsoft-Windows-WinRM|Microsoft-Windows-PowerShell|Windows PowerShell)$", EventID = "^(4624|4625|4648|4672|4768|4769|4776|5140|4778|4779|7045|4697|5860|5861|6|91|4103|4104|400|800|21|22|24|25|41|1149|131|1024|1102)$" }
 
 [windows.functions."openssh.authorized_keys"]
 action = "authorized_keys on Windows host: {comment} — {path}"

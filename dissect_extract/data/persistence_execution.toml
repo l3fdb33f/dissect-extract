@@ -138,7 +138,7 @@ timestamp_field = "ts"
 [windows.functions.evtx]
 action = "Event {EventID}: {Provider_Name} persistence signal ({source})"
 timestamp_field = "ts"
-field_regex = { Provider_Name = "(?i)^(Microsoft-Windows-Security-Auditing|Microsoft-Windows-TaskScheduler)$", EventID = "^(4688|4698|4699|4700|4701|4702|106|140|141|142)$" }
+field_regex = { Provider_Name = "(?i)^(Microsoft-Windows-Security-Auditing|Microsoft-Windows-TaskScheduler)$", EventID = "^(4688|4698|4699|4700|4701|4702|106|141|142)$" }
 
 [windows.functions.powershell_history]
 action = "PowerShell command history (execution): {command}"
