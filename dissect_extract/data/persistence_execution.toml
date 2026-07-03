@@ -20,6 +20,69 @@ field_contains = { name = ".timer" }
 action = "configured a systemd timer"
 timestamp_field = "ts"
 
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4688$" }
+action = "Event 4688: A new process has been created. Process {NewProcessName} — cmdline {CommandLine} (parent {ParentProcessName})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4698$" }
+action = "Event 4698: A scheduled task was created. Task {TaskName}"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4699$" }
+action = "Event 4699: A scheduled task was deleted. Task {TaskName}"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4700$" }
+action = "Event 4700: A scheduled task was enabled. Task {TaskName}"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4701$" }
+action = "Event 4701: A scheduled task was disabled. Task {TaskName}"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4702$" }
+action = "Event 4702: A scheduled task was updated. Task {TaskName}"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-TaskScheduler$", EventID = "^106$" }
+action = "Event 106: User registered Task Scheduler task. Task {TaskName} (user {UserContext})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-TaskScheduler$", EventID = "^141$" }
+action = "Event 141: User deleted Task Scheduler task. Task {TaskName} (user {UserName})"
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-TaskScheduler$", EventID = "^142$" }
+action = "Event 142: User disabled Task Scheduler task. Task {TaskName} (user {UserName})"
+timestamp_field = "ts"
+
 [windows.functions.runkeys]
 action = "Windows Run / RunOnce registry persistence: {command} (value {name}, key {key})"
 timestamp_field = "ts"
@@ -73,9 +136,9 @@ action = "Prefetch execution evidence: {path} (executable {executable})"
 timestamp_field = "ts"
 
 [windows.functions.evtx]
-action = "Process execution (Security 4688): {NewProcessName} — cmdline {CommandLine} (parent {ParentProcessName})"
+action = "Event {EventID}: {Provider_Name} persistence signal ({source})"
 timestamp_field = "ts"
-field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4688$" }
+field_regex = { Provider_Name = "(?i)^(Microsoft-Windows-Security-Auditing|Microsoft-Windows-TaskScheduler)$", EventID = "^(4688|4698|4699|4700|4701|4702|106|140|141|142)$" }
 
 [windows.functions.powershell_history]
 action = "PowerShell command history (execution): {command}"

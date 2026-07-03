@@ -47,7 +47,6 @@ _TIMELINE_FIELDS = (
     "target",
     "record_type",
     "user",
-    "action",
     "source_ip",
     "dest_ip",
     "raw_record",
@@ -64,7 +63,6 @@ def _events_as_dicts(events: list[TimelineEvent]) -> list[dict[str, Any]]:
             "target": e.target_name,
             "record_type": e.record_type,
             "user": e.user,
-            "action": e.action,
             "source_ip": e.source_ip,
             "dest_ip": e.dest_ip,
             "raw_record": e.raw_record,
@@ -73,9 +71,9 @@ def _events_as_dicts(events: list[TimelineEvent]) -> list[dict[str, Any]]:
     ]
 
 
-def _write_json(events: list[TimelineEvent], fp: TextIO) -> None:
-    json.dump(_events_as_dicts(events), fp, indent=2)
-    fp.write("\n")
+def _write_jsonl(events: list[TimelineEvent], fp: TextIO) -> None:
+    for row in _events_as_dicts(events):
+        fp.write(json.dumps(row, ensure_ascii=False) + "\n")
 
 
 def _write_csv(events: list[TimelineEvent], fp: TextIO) -> None:
@@ -113,9 +111,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "-f",
         "--format",
-        choices=("json", "csv"),
-        default="json",
-        help="Output format",
+        choices=("csv", "jsonl"),
+        default="csv",
+        help="Output format (default: csv)",
     )
     parser.add_argument("-o", "--output", default="-", help="Output file (default: stdout)")
     parser.add_argument(
@@ -242,8 +240,8 @@ def main(argv: list[str] | None = None) -> int:
         out = open(args.output, "w", encoding="utf-8", newline="")
 
     try:
-        if args.format == "json":
-            _write_json(all_events, out)
+        if args.format == "jsonl":
+            _write_jsonl(all_events, out)
         else:
             _write_csv(all_events, out)
     finally:

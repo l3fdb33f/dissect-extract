@@ -9,204 +9,210 @@ narrative_action_only = "{action}"
 os = "windows"
 function = "remoteaccess"
 field_contains = { message = "RDP" }
-action = "used remote access (RDP)"
+action = "used remote access (RDP referenced in remote access tool log)"
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4624$" }
-action = "logged on"
+action = "Event 4624: An account was successfully logged on. Logon session created on the destination machine."
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4625$" }
-action = "failed logon"
+action = "Event 4625: An account failed to log on. Failed authentication attempt on the destination machine."
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4648$" }
-action = "logged on with explicit credentials"
+action = "Event 4648: A logon was attempted using explicit credentials. Process supplied explicit credentials for logon."
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4672$" }
-action = "logged on with elevated privileges"
+action = "Event 4672: Special privileges assigned to new logon. Sensitive privileges assigned to the new logon session."
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4768$" }
-action = "requested Kerberos TGT"
+action = "Event 4768: A Kerberos authentication ticket (TGT) was requested. Kerberos TGT issued on a domain controller."
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4769$" }
-action = "requested Kerberos service ticket"
+action = "Event 4769: A Kerberos service ticket was requested. Kerberos service (TGS) ticket requested on a domain controller."
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4776$" }
-action = "authenticated via NTLM"
+action = "Event 4776: The domain controller attempted to validate the credentials for an account. NTLM credential validation."
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^5140$" }
-action = "accessed a network share"
+action = "Event 5140: A network share object was accessed. SMB/network share access (common during remote execution)."
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4778$" }
-action = "reconnected RDP session"
+action = "Event 4778: A session was reconnected to a Window Station. User reconnected to an existing Terminal Services or Fast User Switching session."
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4779$" }
-action = "disconnected RDP session"
+action = "Event 4779: A session was disconnected from a Window Station. User disconnected from a Terminal Services or Fast User Switching session."
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Service Control Manager$", EventID = "^7045$" }
-action = "installed a remote service"
-timestamp_field = "ts"
-
-[[scenario]]
-os = "windows"
-function = "evtx"
-field_regex = { Provider_Name = "(?i)^Service Control Manager$", EventID = "^7036$" }
-action = "changed service state"
+action = "Event 7045: A service was installed in the system. New Windows service installed (remote execution indicator)."
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-Security-Auditing$", EventID = "^4697$" }
-action = "installed a service"
+action = "Event 4697: A service was installed in the system. Security-audited service installation."
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
-field_regex = { Provider_Name = "(?i)^Microsoft-Windows-WMI-Activity$", EventID = "^(5860|5861)$" }
-action = "used WMI"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-WMI-Activity$", EventID = "^5860$" }
+action = "Event 5860: WMI temporary event subscription started. Temporary ESS created (possible WMI activity or persistence)."
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-WMI-Activity$", EventID = "^5861$" }
+action = "Event 5861: WMI event filter consumer binding created. Event filter bound to consumer (WMI persistence indicator)."
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-WinRM$", EventID = "^6$" }
-action = "connected via WinRM"
+action = "Event 6: Creating WSMan Session. WinRM client initiating a remoting session."
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-WinRM$", EventID = "^91$" }
-action = "received WinRM connection"
+action = "Event 91: Creating WSMan shell on server with ResourceUri. WinRM shell created on this host (inbound remoting)."
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-PowerShell$", EventID = "^4103$" }
-action = "ran PowerShell"
+action = "Event 4103: PowerShell module logging pipeline execution. Module/pipeline context logged."
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-PowerShell$", EventID = "^4104$" }
-action = "ran PowerShell"
+action = "Event 4104: Creating Scriptblock text. PowerShell script block logging (de-obfuscated script content)."
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Windows PowerShell$", EventID = "^400$" }
-action = "started PowerShell"
+action = "Event 400: PowerShell engine state changed to Available. PowerShell engine started."
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Windows PowerShell$", EventID = "^800$" }
-action = "ran PowerShell pipeline"
+action = "Event 800: PowerShell pipeline execution details. Pipeline command-line details logged."
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-TerminalServices-LocalSessionManager$", EventID = "^21$" }
-action = "connected via RDP"
+action = "Event 21: Remote Desktop Services: Session logon succeeded."
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-TerminalServices-LocalSessionManager$", EventID = "^22$" }
-action = "disconnected RDP session"
+action = "Event 22: Remote Desktop Services: Shell start notification received."
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-TerminalServices-LocalSessionManager$", EventID = "^24$" }
-action = "disconnected RDP session"
+action = "Event 24: Remote Desktop Services: Session has been disconnected."
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-TerminalServices-LocalSessionManager$", EventID = "^25$" }
-action = "reconnected RDP session"
+action = "Event 25: Remote Desktop Services: Session reconnection succeeded."
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-TerminalServices-LocalSessionManager$", EventID = "^41$" }
-action = "disconnected RDP session"
+action = "Event 41: Begin session arbitration. RDP session arbitration started."
 timestamp_field = "ts"
-
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-TerminalServices-RemoteConnectionManager$", EventID = "^1149$" }
-action = "connected via RDP"
+action = "Event 1149: Remote Desktop Services: User authentication succeeded. Inbound RDP authentication succeeded."
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
 field_regex = { Provider_Name = "(?i)^Microsoft-Windows-RemoteDesktopServices-RdpCoreTS$", EventID = "^131$" }
-action = "connected via RDP"
+action = "Event 131: The server accepted a new RDP connection from client. Inbound RDP connection accepted."
 timestamp_field = "ts"
 
 [[scenario]]
 os = "windows"
 function = "evtx"
-field_regex = { Provider_Name = "(?i)^Microsoft-Windows-TerminalServices-RDPClient$", EventID = "^(1024|1102)$" }
-action = "logged on"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-TerminalServices-RDPClient$", EventID = "^1024$" }
+action = "Event 1024: RDP ClientActiveX is trying to connect to the server. Outbound RDP connection attempt."
+timestamp_field = "ts"
+
+[[scenario]]
+os = "windows"
+function = "evtx"
+field_regex = { Provider_Name = "(?i)^Microsoft-Windows-TerminalServices-RDPClient$", EventID = "^1102$" }
+action = "Event 1102: The client has initiated a multi-transport connection to the server. Outbound RDP multi-transport connection initiated."
 timestamp_field = "ts"
 
 [windows.functions.remoteaccess]
@@ -226,7 +232,7 @@ action = "MSTSC MRU — recent RDP target: {value} (key {key})"
 timestamp_field = "regf_mtime"
 
 [windows.functions.evtx]
-action = "Event log lateral-movement signal: {Provider_Name} EventID {EventID} ({source})"
+action = "Event {EventID}: {Provider_Name} lateral-movement signal ({source})"
 timestamp_field = "ts"
 # Filtered to high-signal event IDs/providers from the Lateral Movement Analyst Reference.
 field_regex = { Provider_Name = "(?i)^(Microsoft-Windows-Security-Auditing|Service Control Manager|Microsoft-Windows-TerminalServices-LocalSessionManager|Microsoft-Windows-TerminalServices-RemoteConnectionManager|Microsoft-Windows-RemoteDesktopServices-RdpCoreTS|Microsoft-Windows-TerminalServices-RDPClient|Microsoft-Windows-WMI-Activity|Microsoft-Windows-WinRM|Microsoft-Windows-PowerShell|Windows PowerShell)$", EventID = "^(4624|4625|4648|4672|4768|4769|4776|5140|4778|4779|7045|7036|4697|5860|5861|6|91|4103|4104|400|800|21|22|24|25|41|1149|131|1024|1102)$" }

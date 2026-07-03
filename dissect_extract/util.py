@@ -3,7 +3,7 @@ from __future__ import annotations
 import base64
 import re
 import sys
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -95,6 +95,18 @@ def pick_timestamp(mapping: dict[str, Any], preferred: str | None) -> date | Non
         if isinstance(v, date):
             return v
     return None
+
+
+def format_timeline_timestamp(ts: date | None) -> str | None:
+    """Format a timeline timestamp as ``YYYY-MM-DD HH:MM:SS UTC``."""
+
+    if ts is None:
+        return None
+    if isinstance(ts, datetime):
+        if ts.tzinfo is not None:
+            ts = ts.astimezone(timezone.utc).replace(tzinfo=None)
+        return ts.strftime("%Y-%m-%d %H:%M:%S UTC")
+    return f"{ts.isoformat()} 00:00:00 UTC"
 
 
 def normalize_os_slug(slug: str) -> str:

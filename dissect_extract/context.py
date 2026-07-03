@@ -41,6 +41,7 @@ USER_FIELDS: tuple[str, ...] = (
     "sam_name",
     "cn",
     "upn",
+    "EventXML_User",
 )
 
 SID_FIELDS: tuple[str, ...] = (
@@ -69,6 +70,8 @@ SRC_IP_FIELDS: tuple[str, ...] = (
     "initiating_ip",
     "SourceIpAddress",
     "EventXML_Param3",
+    "ClientIP",
+    "clientIP",
 )
 
 DST_IP_FIELDS: tuple[str, ...] = (
@@ -81,6 +84,26 @@ DST_IP_FIELDS: tuple[str, ...] = (
 
 # Terminal Services / RDP: Param1 is typically the username on these events.
 _EVENTXML_USER_FIRST_IDS = frozenset({1149, 21, 22, 24, 25, 41, 131, 1024, 1102})
+
+# WinRM outbound session create: connection string is <host>/wsman?PSVersion=...
+_WINRM_CONNECTION_EVENT_IDS = frozenset({6})
+# WinRM inbound shell create: client address in ClientIP field or message text.
+_WINRM_INBOUND_EVENT_IDS = frozenset({91})
+_CLIENTIP_MESSAGE_RE = re.compile(r"clientIP:\s*([^\s)]+)", re.IGNORECASE)
+_LOCALHOST_HOSTS = frozenset({"localhost", "127.0.0.1", "::1"})
+_LOW_PRIORITY_USER_SIDS = frozenset({"S-1-5-18", "S-1-5-19", "S-1-5-20"})
+_LOW_PRIORITY_USER_NAMES = frozenset(
+    {
+        "local service",
+        "localservice",
+        "local system",
+        "localsystem",
+        "network service",
+        "networkservice",
+        "system",
+        "systemprofile",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -242,66 +265,206 @@ def _event_id(mapping: dict[str, Any]) -> int | None:
         return None
 
 
+def _is_winrm_provider(mapping: dict[str, Any]) -> bool:
+    name = format_record_value(mapping.get("Provider_Name", "")).strip().lower()
+    return "winrm" in name or name.endswith("windows remote management")
+
+
+def _parse_winrm_connection_dest(value: Any) -> str | None:
+    """Extract remote host from WinRM connection strings like host/wsman?PSVersion=5.1."""
+
+    text = format_record_value(value).strip()
+    if not text:
+        return None
+
+    target = text
+    if "://" in target:
+        target = target.split("://", 1)[1]
+
+    host_port = target.split("/", 1)[0].split("?", 1)[0].strip()
+    if not host_port:
+        return None
+
+    if host_port.startswith("[") and "]" in host_port:
+        host = host_port[1 : host_port.index("]")].strip()
+    elif ":" in host_port and not _IPV4_RE.fullmatch(host_port):
+        host_part, port_part = host_port.rsplit(":", 1)
+        host = host_part.strip() if port_part.isdigit() else host_port
+    else:
+        host = host_port
+
+    if not host or host.lower() in _LOCALHOST_HOSTS:
+        return None
+
+    ip_match = _IPV4_RE.search(host)
+    if ip_match:
+        return ip_match.group(0)
+    return host
+
+
+def _extract_winrm_dest(mapping: dict[str, Any]) -> str | None:
+    if not _is_winrm_provider(mapping):
+        return None
+    eid = _event_id(mapping)
+    if eid not in _WINRM_CONNECTION_EVENT_IDS:
+        return None
+    for key in ("connection", "Connection"):
+        if key in mapping:
+            dest = _parse_winrm_connection_dest(mapping.get(key))
+            if dest:
+                return dest
+    return None
+
+
+def _normalize_winrm_client(value: str) -> str | None:
+    text = value.strip().rstrip(")")
+    if not text:
+        return None
+    lower = text.lower()
+    if lower in _LOCALHOST_HOSTS:
+        return None
+    ip_match = _IPV4_RE.search(text)
+    if ip_match:
+        return ip_match.group(0)
+    return text
+
+
+def _extract_winrm_source(mapping: dict[str, Any]) -> str | None:
+    """Inbound WinRM (e.g. event 91): client IP from field or rendered message."""
+
+    if not _is_winrm_provider(mapping):
+        return None
+    eid = _event_id(mapping)
+    if eid not in _WINRM_INBOUND_EVENT_IDS:
+        return None
+
+    for key in ("ClientIP", "clientIP", "ClientIp"):
+        if key in mapping:
+            client = _normalize_winrm_client(format_record_value(mapping.get(key)))
+            if client:
+                return client
+
+    for key in ("Message", "message"):
+        if key not in mapping:
+            continue
+        text = format_record_value(mapping.get(key))
+        match = _CLIENTIP_MESSAGE_RE.search(text)
+        if match:
+            client = _normalize_winrm_client(match.group(1))
+            if client:
+                return client
+
+    return None
+
+
+def _is_low_priority_user(candidate: str, original: Any = None) -> bool:
+    original_text = format_record_value(original).strip().upper() if original is not None else ""
+    if original_text in _LOW_PRIORITY_USER_SIDS:
+        return True
+    candidate_text = candidate.strip().lower()
+    if "\\" in candidate_text:
+        candidate_text = candidate_text.split("\\", 1)[-1]
+    if "@" in candidate_text:
+        candidate_text = candidate_text.split("@", 1)[0]
+    return candidate_text in _LOW_PRIORITY_USER_NAMES
+
+
+def _user_candidate(value: Any, *, sid_map: UserAccountMap, allow_raw: bool = False) -> str | None:
+    resolved = sid_map.resolve(value)
+    if resolved and _looks_like_username(resolved):
+        return resolved
+
+    if not allow_raw:
+        return None
+    text = format_record_value(value).strip()
+    if text and _looks_like_username(text) and not _DOMAIN_RE.match(text):
+        return text
+    return None
+
+
 def _extract_user(
     mapping: dict[str, Any],
     *,
     sid_map: UserAccountMap,
     record: Any | None,
 ) -> str | None:
+    fallback_user: str | None = None
+
+    def keep_or_return(candidate: str | None, original: Any = None) -> str | None:
+        nonlocal fallback_user
+        if not candidate:
+            return None
+        if _is_low_priority_user(candidate, original):
+            fallback_user = fallback_user or candidate
+            return None
+        return candidate
+
     for key in USER_FIELDS:
         if key not in mapping:
             continue
-        resolved = sid_map.resolve(mapping.get(key))
-        if resolved and _looks_like_username(resolved):
-            return resolved
+        val = mapping.get(key)
+        resolved = _user_candidate(val, sid_map=sid_map, allow_raw=True)
+        chosen = keep_or_return(resolved, val)
+        if chosen:
+            return chosen
 
     eid = _event_id(mapping)
     if eid in _EVENTXML_USER_FIRST_IDS:
         p1 = mapping.get("EventXML_Param1")
         if p1 is not None:
-            resolved = sid_map.match_known_name(p1)
-            if not resolved:
-                text = format_record_value(p1).strip()
-                if _looks_like_username(text):
-                    resolved = text
-            if resolved:
-                return str(resolved)
+            resolved = _user_candidate(p1, sid_map=sid_map, allow_raw=True)
+            chosen = keep_or_return(resolved, p1)
+            if chosen:
+                return str(chosen)
 
     for key in sorted(k for k in mapping if str(k).startswith("EventXML_Param")):
         val = mapping.get(key)
         resolved = sid_map.match_known_name(val)
-        if resolved:
-            return resolved
+        chosen = keep_or_return(resolved, val)
+        if chosen:
+            return chosen
         text = format_record_value(val).strip()
         if text and _looks_like_username(text) and not _DOMAIN_RE.match(text):
             if eid in _EVENTXML_USER_FIRST_IDS and key.endswith("Param1"):
-                return text
-            if sid_map.match_known_name(text):
-                return sid_map.match_known_name(text)
+                chosen = keep_or_return(text, val)
+                if chosen:
+                    return chosen
+            known = sid_map.match_known_name(text)
+            chosen = keep_or_return(known, val)
+            if chosen:
+                return chosen
 
     for key in SID_FIELDS:
         if key not in mapping:
             continue
-        resolved = sid_map.resolve(mapping.get(key))
-        if resolved:
-            return resolved
+        val = mapping.get(key)
+        resolved = sid_map.resolve(val)
+        chosen = keep_or_return(resolved, val)
+        if chosen:
+            return chosen
 
     for val in mapping.values():
         hit = sid_map.match_known_name(val)
-        if hit:
-            return hit
+        chosen = keep_or_return(hit, val)
+        if chosen:
+            return chosen
 
     if record is not None:
         attached = getattr(record, "_user", None)
         if attached is not None:
             name = getattr(attached, "name", None)
             if name:
-                return str(name)
+                chosen = keep_or_return(str(name), name)
+                if chosen:
+                    return chosen
             sid = getattr(attached, "sid", None)
             if sid:
-                return sid_map.resolve(str(sid))
+                resolved = sid_map.resolve(str(sid))
+                chosen = keep_or_return(resolved, str(sid))
+                if chosen:
+                    return chosen
 
-    return None
+    return fallback_user
 
 
 def extract_event_context(
@@ -340,6 +503,18 @@ def extract_event_context(
         source_ip = extra_ips[0]
         if len(extra_ips) > 1 and dest_ip is None:
             dest_ip = extra_ips[1]
+
+    winrm_dest = _extract_winrm_dest(mapping)
+    if winrm_dest:
+        if source_ip == winrm_dest:
+            source_ip = None
+        dest_ip = winrm_dest
+
+    winrm_source = _extract_winrm_source(mapping)
+    if winrm_source:
+        if dest_ip == winrm_source:
+            dest_ip = None
+        source_ip = winrm_source
 
     return EventContext(user=user, source_ip=source_ip, dest_ip=dest_ip)
 

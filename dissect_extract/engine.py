@@ -28,6 +28,7 @@ from dissect_extract.context import (
 from dissect_extract.keywords import KeywordFilter
 from dissect_extract.util import (
     fnmatch_path,
+    format_timeline_timestamp,
     function_entry_matches_filters,
     format_path,
     format_record_value,
@@ -411,7 +412,7 @@ def collect_events(
                 rtype_s = format_record_value(mapping.get("_type")) or "filesystem/yara/match"
             events.append(
                 TimelineEvent(
-                    timestamp=ts.isoformat() if ts else None,
+                    timestamp=format_timeline_timestamp(ts),
                     category=category,
                     source_function=func_name,
                     description=desc,
